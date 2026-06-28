@@ -26,6 +26,11 @@ const getFontScaleMultiplier = (fontFamily, themeId, size) => {
         }
     }
 
+    // ✨ Mobile UX: Increase font size overall for mobile
+    if (window.innerWidth <= 768) {
+        baseScale *= 1.22;
+    }
+
     if (baseScale === 1.0) return 1.0;
 
     // Taper factor based on size/class to avoid oversized header fonts
@@ -513,12 +518,10 @@ const TaskItem = memo(({
                         <>
                             <span
                                 className={`break-words leading-snug 
-                                ${(isMiniMode && (currentTheme === 'developer' || currentTheme === 'excel'))
-                                        ? 'text-xs'
-                                        : getTextSizeClass(fontSize)}
+                                ${getTextSizeClass(fontSize)}
                                 ${task.completed ? theme.task.textDone : theme.task.textDefault}`}
                                 style={typeof fontSize === 'number' ? (() => {
-                                    const base = isMiniMode ? Math.min(17, Math.max(11, fontSize - 2), fontSize) : fontSize;
+                                    const base = fontSize;
                                     const mult = getFontScaleMultiplier(fontFamily, currentTheme, base);
                                     return { fontSize: `${Math.round(base * mult)}px` };
                                 })() : {}}
@@ -531,11 +534,9 @@ const TaskItem = memo(({
                                     (task.alerted && notifications.some(n => n.taskId === task.id)) ? 'text-red-400 font-bold animate-pulse' :
                                         theme.task.timeDefault
                                     } 
-                                    ${(isMiniMode && (currentTheme === 'developer' || currentTheme === 'excel'))
-                                        ? 'text-[10px]'
-                                        : getSubTextSizeClass(fontSize)}`}
+                                    ${getSubTextSizeClass(fontSize)}`}
                                 style={typeof fontSize === 'number' ? (() => {
-                                    const base = isMiniMode ? Math.min(14, Math.max(9, fontSize - 5), fontSize - 3) : Math.max(10, fontSize - 3);
+                                    const base = Math.max(10, fontSize - 3);
                                     const mult = getFontScaleMultiplier(fontFamily, currentTheme, base);
                                     return { fontSize: `${Math.round(base * mult)}px` };
                                 })() : {}}
