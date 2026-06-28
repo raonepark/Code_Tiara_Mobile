@@ -5,7 +5,7 @@ import {
   Download, Upload, Timer, Pause, Play, ChevronUp, ChevronDown, Clock, Bell,
   Star, Coffee, Music, Home, Briefcase, Heart, Sun, Moon, Hourglass,
   PanelTopClose, PanelTopOpen, Edit2, Check, Grid2X2, Calendar, Minus, GripVertical, Menu, Gift,
-  ChevronLeft, ChevronRight, Repeat, Pin, PinOff, Mail, Copy, ArrowUp, AlignLeft
+  ChevronLeft, ChevronRight, Repeat, Pin, PinOff, Mail, Copy, ArrowUp, AlignLeft, FolderInput
 } from 'lucide-react';
 import CustomDatePicker from './components/CustomDatePicker';
 import CustomSelect from './components/CustomSelect';
@@ -432,6 +432,13 @@ const CodeTiara = () => {
   
   // ✨ Mobile UX States
   const [longPressedTask, setLongPressedTask] = useState(null);
+  const [isMoveCategoryOpen, setIsMoveCategoryOpen] = useState(false);
+
+  const moveTaskToCategory = (taskId, targetCategoryId) => {
+    const updatedTasks = tasks.map(t => t.id === taskId ? { ...t, categoryId: targetCategoryId } : t);
+    setTasks(updatedTasks);
+    localStorage.setItem('lumora_tasks', JSON.stringify(updatedTasks));
+  };
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [showAdvancedAdd, setShowAdvancedAdd] = useState(false);
   
@@ -4918,7 +4925,7 @@ const CodeTiara = () => {
         {longPressedTask && (
           <div className="fixed inset-0 z-50 flex items-end">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => setLongPressedTask(null)} />
+            <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => { setLongPressedTask(null); setIsMoveCategoryOpen(false); }} />
             
             {/* Sheet Content */}
             <div className={`relative w-full rounded-t-3xl p-5 pb-12 sm:pb-5 shadow-2xl animate-in slide-in-from-bottom-full duration-300 ${
@@ -4926,70 +4933,135 @@ const CodeTiara = () => {
               currentTheme === 'excel' ? 'bg-white border-t-4 border-[#107C41]' :
               'bg-[#1E1E1E] border-t border-[#3E3E42]'
             }`}>
-              <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-5" />
-              
-              {/* Selected Task Title */}
-              <div className={`text-center mb-6 px-4 truncate font-bold text-lg ${
-                currentTheme === 'princess' ? 'text-[#FF6B81]' :
-                currentTheme === 'excel' ? 'text-slate-800' :
-                'text-white'
-              }`}>
-                {longPressedTask.text}
-              </div>
+              {isMoveCategoryOpen ? (
+                <div className="flex flex-col gap-2 pb-6 animate-in fade-in duration-200">
+                  <div className={`text-center font-bold mb-4 text-base ${
+                    currentTheme === 'princess' ? 'text-[#FF6B81]' :
+                    currentTheme === 'excel' ? 'text-[#107C41]' :
+                    'text-white'
+                  }`}>
+                    {t('app.move_category') || '카테고리 이동'}
+                  </div>
+                  <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
+                    {categories
+                      .filter(c => c.id !== longPressedTask.categoryId)
+                      .map(c => (
+                        <button
+                          key={c.id}
+                          onClick={() => {
+                            moveTaskToCategory(longPressedTask.id, c.id);
+                            setLongPressedTask(null);
+                            setIsMoveCategoryOpen(false);
+                          }}
+                          className={`w-full p-4 rounded-2xl text-left font-bold transition-all active:scale-98 flex items-center justify-between ${
+                            currentTheme === 'princess' ? 'bg-[#FFF0F5] hover:bg-pink-100/80 text-[#FF6B81]' :
+                            currentTheme === 'excel' ? 'bg-[#F3F2F1] hover:bg-slate-200 text-slate-700' :
+                            'bg-[#252526] hover:bg-slate-800 text-[#D4D4D4]'
+                          }`}
+                        >
+                          <span>{c.label}</span>
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border-2"
+                            style={{
+                              borderColor: CATEGORY_ICON_HUES[c.colorTheme] || '#FF6B81',
+                              backgroundColor: CATEGORY_HUES[c.colorTheme] || '#FFC0CB'
+                            }}
+                          />
+                        </button>
+                      ))}
+                  </div>
+                  <button
+                    onClick={() => setIsMoveCategoryOpen(false)}
+                    className={`w-full p-4 rounded-2xl text-center font-bold mt-2 transition-all active:scale-98 ${
+                      currentTheme === 'princess' ? 'bg-pink-100 text-[#FF6B81]' :
+                      currentTheme === 'excel' ? 'bg-slate-200 text-slate-700' :
+                      'bg-[#323233] text-[#D4D4D4]'
+                    }`}
+                  >
+                    {t('app.back') || '뒤로 가기'}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-5" />
+                  
+                  {/* Selected Task Title */}
+                  <div className={`text-center mb-6 px-4 truncate font-bold text-lg ${
+                    currentTheme === 'princess' ? 'text-[#FF6B81]' :
+                    currentTheme === 'excel' ? 'text-slate-800' :
+                    'text-white'
+                  }`}>
+                    {longPressedTask.text}
+                  </div>
 
-              <div className="grid grid-cols-4 gap-2 pb-6">
-                {/* Toggle Complete */}
-                <button
-                  onClick={() => { toggleTask(longPressedTask.id); setLongPressedTask(null); }}
-                  className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-2 transition-all active:scale-95 ${
-                    currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
-                    currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
-                    'bg-[#252526] text-[#D4D4D4]'
-                  }`}
-                >
-                  <CheckCircle2 className="w-6 h-6" />
-                  <span className="text-xs font-bold">{t('app.tooltip_complete') || '완료'}</span>
-                </button>
+                  <div className="grid grid-cols-5 gap-2 pb-6">
+                    {/* Toggle Complete */}
+                    <button
+                      onClick={() => { toggleTask(longPressedTask.id); setLongPressedTask(null); }}
+                      className={`flex flex-col items-center justify-center p-2 rounded-2xl gap-2 transition-all active:scale-95 ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
+                        currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
+                        'bg-[#252526] text-[#D4D4D4]'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span className="text-[10px] font-bold">{t('app.tooltip_complete') || '완료'}</span>
+                    </button>
 
-                {/* Copy / Duplicate */}
-                <button
-                  onClick={() => { duplicateTask(longPressedTask); setLongPressedTask(null); }}
-                  className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-2 transition-all active:scale-95 ${
-                    currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
-                    currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
-                    'bg-[#252526] text-[#D4D4D4]'
-                  }`}
-                >
-                  <Copy className="w-6 h-6" />
-                  <span className="text-xs font-bold">{t('app.tooltip_duplicate') || '복사'}</span>
-                </button>
+                    {/* Copy / Duplicate */}
+                    <button
+                      onClick={() => { duplicateTask(longPressedTask); setLongPressedTask(null); }}
+                      className={`flex flex-col items-center justify-center p-2 rounded-2xl gap-2 transition-all active:scale-95 ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
+                        currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
+                        'bg-[#252526] text-[#D4D4D4]'
+                      }`}
+                    >
+                      <Copy className="w-5 h-5" />
+                      <span className="text-[10px] font-bold">{t('app.tooltip_duplicate') || '복사'}</span>
+                    </button>
 
-                {/* Edit */}
-                <button
-                  onClick={() => { startEditing(longPressedTask); setLongPressedTask(null); }}
-                  className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-2 transition-all active:scale-95 ${
-                    currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
-                    currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
-                    'bg-[#252526] text-[#D4D4D4]'
-                  }`}
-                >
-                  <Edit2 className="w-6 h-6" />
-                  <span className="text-xs font-bold">{t('app.tooltip_edit') || '수정'}</span>
-                </button>
+                    {/* Edit */}
+                    <button
+                      onClick={() => { startEditing(longPressedTask); setLongPressedTask(null); }}
+                      className={`flex flex-col items-center justify-center p-2 rounded-2xl gap-2 transition-all active:scale-95 ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
+                        currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
+                        'bg-[#252526] text-[#D4D4D4]'
+                      }`}
+                    >
+                      <Edit2 className="w-5 h-5" />
+                      <span className="text-[10px] font-bold">{t('app.tooltip_edit') || '수정'}</span>
+                    </button>
 
-                {/* Delete */}
-                <button
-                  onClick={() => { setConfirmingDeleteId(longPressedTask.id); setLongPressedTask(null); }}
-                  className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-2 transition-all active:scale-95 ${
-                    currentTheme === 'princess' ? 'bg-[#FFF0F5] text-red-500' :
-                    currentTheme === 'excel' ? 'bg-[#F3F2F1] text-red-600' :
-                    'bg-[#252526] text-red-400'
-                  }`}
-                >
-                  <Trash2 className="w-6 h-6" />
-                  <span className="text-xs font-bold">{t('app.tooltip_delete') || '삭제'}</span>
-                </button>
-              </div>
+                    {/* Move Category */}
+                    <button
+                      onClick={() => setIsMoveCategoryOpen(true)}
+                      className={`flex flex-col items-center justify-center p-2 rounded-2xl gap-2 transition-all active:scale-95 ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
+                        currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
+                        'bg-[#252526] text-[#D4D4D4]'
+                      }`}
+                    >
+                      <FolderInput className="w-5 h-5" />
+                      <span className="text-[10px] font-bold">{t('app.move_category') || '이동'}</span>
+                    </button>
+
+                    {/* Delete */}
+                    <button
+                      onClick={() => { setConfirmingDeleteId(longPressedTask.id); setLongPressedTask(null); }}
+                      className={`flex flex-col items-center justify-center p-2 rounded-2xl gap-2 transition-all active:scale-95 ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-red-500' :
+                        currentTheme === 'excel' ? 'bg-[#F3F2F1] text-red-600' :
+                        'bg-[#252526] text-red-400'
+                      }`}
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      <span className="text-[10px] font-bold">{t('app.tooltip_delete') || '삭제'}</span>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

@@ -132,6 +132,41 @@ const TaskItem = memo(({
     const { t } = useTranslation();
     const [isMemoExpanded, setIsMemoExpanded] = useState(false);
 
+    // ✨ Mobile Swipe to Delete states and handlers
+    const isMobile = typeof window !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    const [touchStart, setTouchStart] = useState(null);
+    const [swipeOffset, setSwipeOffset] = useState(0);
+    const [isSwipeOpen, setIsSwipeOpen] = useState(false);
+
+    const handleTouchStart = (e) => {
+        if (!isMobile || editingTaskId === task.id) return;
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isMobile || touchStart === null || editingTaskId === task.id) return;
+        const currentX = e.targetTouches[0].clientX;
+        const diffX = touchStart - currentX;
+        
+        if (diffX > 0) {
+            setSwipeOffset(Math.min(diffX, 120));
+        } else {
+            setSwipeOffset(0);
+        }
+    };
+
+    const handleTouchEnd = () => {
+        if (!isMobile || editingTaskId === task.id) return;
+        if (swipeOffset > 50) {
+            setSwipeOffset(70);
+            setIsSwipeOpen(true);
+        } else {
+            setSwipeOffset(0);
+            setIsSwipeOpen(false);
+        }
+        setTouchStart(null);
+    };
+
     useEffect(() => {
         if (triggerPopoutResize) {
             // Delay slightly to ensure DOM has updated and transitioned
@@ -230,336 +265,371 @@ const TaskItem = memo(({
                     '--c-bg': hexToRgba(CATEGORY_HUES[category.colorTheme] || '#FFC0CB', 0.15)
                 } : {})
             }}
-            onClick={() => { if (editingTaskId !== task.id) toggleTask(task.id) }}
-            className={`${theme.category.taskItem} ${isMiniMode ? '!mx-0 !mb-1 !p-1.5 last:!mb-0' : ''} cursor-pointer active:cursor-grabbing relative ${task.completed ? 'opacity-60' : ''} ${snapshot.isDragging ? 'shadow-lg z-50 ' + theme.task.dragShadow : ''}`}
+            onClick={(e) => {
+                if (isSwipeOpen) {
+                    e.stopPropagation();
+                    setSwipeOffset(0);
+                    setIsSwipeOpen(false);
+                    return;
+                }
+                if (editingTaskId !== task.id) toggleTask(task.id);
+            }}
+            className={`${theme.category.taskItem} ${isMiniMode ? '!mx-0 !mb-1 !p-1.5 last:!mb-0' : ''} cursor-pointer active:cursor-grabbing relative ${task.completed ? 'opacity-60' : ''} ${snapshot.isDragging ? 'shadow-lg z-50 ' + theme.task.dragShadow : ''} ${isMobile ? 'overflow-hidden' : ''}`}
         >
-            {currentTheme === 'excel' ? (
-                <div className={theme.task.checkboxExcel}
-                    onClick={(e) => { e.stopPropagation(); toggleTask(task.id); }}
+            {/* Absolute swipe delete background */}
+            {isMobile && (
+                <div
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        finalDeleteTask(task.id);
+                    }}
+                    className="absolute right-0 top-0 bottom-0 w-[70px] bg-[#FF4D4D] hover:bg-[#FF3333] flex items-center justify-center text-white z-0 cursor-pointer"
                 >
-                    {task.completed && <Check className={theme.task.checkboxExcelCheck} strokeWidth={3} />}
+                    <Trash2 className="w-5 h-5 animate-in zoom-in-50 duration-200" />
                 </div>
-            ) : (
-                <button
-                    onClick={(e) => { e.stopPropagation(); toggleTask(task.id); }}
-                    className={`mt-0.5 flex-shrink-0 transition-colors ${task.completed ? theme.task.checkboxDone : theme.task.checkbox}`}
-                >
-                    {task.completed ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
-                </button>
             )}
 
-            <div className="flex-1 flex flex-col min-w-0 text-left">
-                {editingTaskId === task.id ? (
-                    <div ref={editFormRef} className={`w-full relative transition-all duration-300 z-10 ${theme.task.editContainer}`} onClick={e => e.stopPropagation()}>
+            <div
+                className="flex-1 flex items-center w-full z-10 bg-inherit"
+                style={{
+                    transform: `translateX(-${swipeOffset}px)`,
+                    transition: touchStart ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: currentTheme === 'excel' ? '0.5rem' : '0.75rem',
+                    width: '100%'
+                }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+            >
+                {currentTheme === 'excel' ? (
+                    <div className={theme.task.checkboxExcel}
+                        onClick={(e) => { e.stopPropagation(); toggleTask(task.id); }}
+                    >
+                        {task.completed && <Check className={theme.task.checkboxExcelCheck} strokeWidth={3} />}
+                    </div>
+                ) : (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); toggleTask(task.id); }}
+                        className={`mt-0.5 flex-shrink-0 transition-colors ${task.completed ? theme.task.checkboxDone : theme.task.checkbox}`}
+                    >
+                        {task.completed ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                    </button>
+                )}
 
-                        <div className={`${theme.task.editInputBgWrapper}`}>
-                            {currentTheme === 'developer' && <div className="text-[#569CD6] text-xs mb-1">mode: EDIT_TASK</div>}
-                            <input
-                                type="text"
-                                value={editingText}
-                                onChange={(e) => setEditingText(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') saveEditing(task.id);
-                                    if (e.key === 'Escape') cancelEditing();
-                                }}
-                                autoFocus
-                                className={`w-full bg-transparent focus:outline-none transition-all ${theme.task.editInputBg}`}
-                                style={typeof fontSize === 'number' ? { fontSize: `${Math.round(fontSize * getFontScaleMultiplier(fontFamily, currentTheme, fontSize))}px` } : {}}
-                                placeholder={t('app.edit_placeholder')}
-                            />
-                        </div>
+                <div className="flex-1 flex flex-col min-w-0 text-left">
+                    {editingTaskId === task.id ? (
+                        <div ref={editFormRef} className={`w-full relative transition-all duration-300 z-10 ${theme.task.editContainer}`} onClick={e => e.stopPropagation()}>
 
-                        <div className={`mt-2 ${currentTheme === 'excel' ? 'bg-[#F3F2F1] p-2 border-t border-[#D1D1D1]' : ''}`}>
-                              <textarea
-                                value={editingMemo}
-                                onChange={(e) => setEditingMemo(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                                        e.preventDefault();
-                                        saveEditing(task.id);
-                                    }
-                                    if (e.key === 'Escape') cancelEditing();
-                                }}
-                                onMouseUp={() => {
-                                    if (triggerPopoutResize) {
-                                        setTimeout(triggerPopoutResize, 100);
-                                    }
-                                }}
-                                placeholder={t('app.memo_placeholder')}
-                                rows={2}
-                                className={`w-full bg-transparent focus:outline-none resize-y min-h-[40px] max-h-[160px] transition-colors duration-200 block
-                                    ${currentTheme === 'princess'
-                                        ? 'border border-[var(--c-light-rgb)] focus:border-[var(--c-dark)] text-slate-600 rounded-xl p-2 text-xs font-semibold bg-white'
-                                        : (currentTheme === 'excel'
-                                            ? 'border border-[#D1D1D1] bg-white text-xs p-1.5 text-slate-800 font-sans focus:border-[#217346]'
-                                            : 'border border-[#3E3E42] bg-[#1E1E1E] text-[#D4D4D4] font-mono text-[11px] p-2 focus:border-[#007ACC]')
-                                    }`}
-                            />
-                            <div className={`text-[9px] mt-0.5 text-right opacity-60 ${currentTheme === 'developer' ? 'font-mono text-[#5C6370]' : 'text-slate-400'}`}>
-                                {t('app.save_hint')}
+                            <div className={`${theme.task.editInputBgWrapper}`}>
+                                {currentTheme === 'developer' && <div className="text-[#569CD6] text-xs mb-1">mode: EDIT_TASK</div>}
+                                <input
+                                    type="text"
+                                    value={editingText}
+                                    onChange={(e) => setEditingText(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') saveEditing(task.id);
+                                        if (e.key === 'Escape') cancelEditing();
+                                    }}
+                                    autoFocus
+                                    className={`w-full bg-transparent focus:outline-none transition-all ${theme.task.editInputBg}`}
+                                    style={typeof fontSize === 'number' ? { fontSize: `${Math.round(fontSize * getFontScaleMultiplier(fontFamily, currentTheme, fontSize))}px` } : {}}
+                                    placeholder={t('app.edit_placeholder')}
+                                />
                             </div>
-                        </div>
 
-                        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${theme.task.editActionRow}`}>
-
-                            <div className={`flex flex-wrap items-center justify-center sm:justify-start gap-1 sm:gap-2 w-full sm:w-auto ${theme.task.editDateWrapper}`}>
-                                <div className="w-full sm:w-auto flex justify-center sm:justify-start">
-                                    <CustomDatePicker
-                                        value={editingDate}
-                                        onChange={(e) => setEditingDate(e.target.value)}
-                                        placeholder={t('app.date')}
-                                        inputClassName={`bg-transparent text-center focus:outline-none cursor-pointer ${theme.task.editDateInput}`}
-                                        currentTheme={currentTheme}
-                                    />
+                            <div className={`mt-2 ${currentTheme === 'excel' ? 'bg-[#F3F2F1] p-2 border-t border-[#D1D1D1]' : ''}`}>
+                                  <textarea
+                                    value={editingMemo}
+                                    onChange={(e) => setEditingMemo(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                            e.preventDefault();
+                                            saveEditing(task.id);
+                                        }
+                                        if (e.key === 'Escape') cancelEditing();
+                                    }}
+                                    onMouseUp={() => {
+                                        if (triggerPopoutResize) {
+                                            setTimeout(triggerPopoutResize, 100);
+                                        }
+                                    }}
+                                    placeholder={t('app.memo_placeholder')}
+                                    rows={2}
+                                    className={`w-full bg-transparent focus:outline-none resize-y min-h-[40px] max-h-[160px] transition-colors duration-200 block
+                                        ${currentTheme === 'princess'
+                                            ? 'border border-[var(--c-light-rgb)] focus:border-[var(--c-dark)] text-slate-600 rounded-xl p-2 text-xs font-semibold bg-white'
+                                            : (currentTheme === 'excel'
+                                                ? 'border border-[#D1D1D1] bg-white text-xs p-1.5 text-slate-800 font-sans focus:border-[#217346]'
+                                                : 'border border-[#3E3E42] bg-[#1E1E1E] text-[#D4D4D4] font-mono text-[11px] p-2 focus:border-[#007ACC]')
+                                        }`}
+                                />
+                                <div className={`text-[9px] mt-0.5 text-right opacity-60 ${currentTheme === 'developer' ? 'font-mono text-[#5C6370]' : 'text-slate-400'}`}>
+                                    {t('app.save_hint')}
                                 </div>
+                            </div>
 
-                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 w-full sm:w-auto">
-                                  <div className={`flex items-center justify-center p-1 rounded-sm ${currentTheme === 'princess' ? 'bg-[var(--c-bg)] text-[var(--c-dark)]' : (currentTheme === 'excel' ? 'bg-[#107C41] text-white' : 'bg-[#007ACC] text-white')}`}>
-                                    <Repeat className="w-3 h-3" />
-                                  </div>
-                                  <select
-                                    value={editingRecurrence}
-                                    onChange={(e) => setEditingRecurrence(e.target.value)}
-                                    className={`outline-none bg-transparent cursor-pointer text-xs ${currentTheme === 'princess' ? 'text-[var(--c-dark)] font-bold' : (currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1] h-6 px-1' : 'text-[#ABB2BF]')}`}
-                                    title={t('app.recurrence')}
-                                  >
-                                    <option value="none" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_none')}</option>
-                                    <option value="daily" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_daily')}</option>
-                                    <option value="weekly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_weekly')}</option>
-                                    <option value="monthly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_monthly')}</option>
-                                    <option value="custom" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_custom')}</option>
-                                  </select>
-                                  {editingRecurrence === 'weekly' && renderDayPicker(editingRecurrenceDays, setEditingRecurrenceDays, editingDate)}
-                                  {editingRecurrence === 'monthly' && (
-                                    <span className={`text-[10px] ml-1 whitespace-nowrap ${currentTheme === 'princess' ? 'text-[var(--c-dark)] opacity-70 font-bold' : (currentTheme === 'excel' ? 'text-slate-500' : 'text-[#ABB2BF] opacity-70')}`}>
-                                      {getRecurrenceHint(editingDate, editingRecurrence)}
-                                    </span>
-                                  )}
-                                  {editingRecurrence === 'custom' && (
-                                    <div className="flex items-center">
-                                      <input
-                                        type="number"
-                                        min="1"
-                                        value={editingRecurrenceInterval}
-                                        onChange={(e) => setEditingRecurrenceInterval(e.target.value)}
-                                        className={`w-8 text-center outline-none bg-transparent text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${currentTheme === 'princess' ? 'border-b border-[var(--c-dark)] text-[var(--c-dark)] font-bold' : (currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1] h-6' : 'border-b border-[#3E3E42] text-[#D19A66]')}`}
-                                      />
-                                      <div className="flex flex-col ml-0.5">
-                                        <button type="button" onClick={() => setEditingRecurrenceInterval(p => Math.max(1, Number(p) + 1))} className={`p-0 hover:bg-black/10 rounded-t ${currentTheme === 'princess' ? 'text-[var(--c-dark)]' : (currentTheme === 'excel' ? 'text-slate-600' : 'text-slate-400')}`}><ChevronUp className="w-2.5 h-2.5" /></button>
-                                        <button type="button" onClick={() => setEditingRecurrenceInterval(p => Math.max(1, Number(p) - 1))} className={`p-0 hover:bg-black/10 rounded-b ${currentTheme === 'princess' ? 'text-[var(--c-dark)]' : (currentTheme === 'excel' ? 'text-slate-600' : 'text-slate-400')}`}><ChevronDown className="w-2.5 h-2.5" /></button>
-                                      </div>
+                            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${theme.task.editActionRow}`}>
+
+                                <div className={`flex flex-wrap items-center justify-center sm:justify-start gap-1 sm:gap-2 w-full sm:w-auto ${theme.task.editDateWrapper}`}>
+                                    <div className="w-full sm:w-auto flex justify-center sm:justify-start">
+                                        <CustomDatePicker
+                                            value={editingDate}
+                                            onChange={(e) => setEditingDate(e.target.value)}
+                                            placeholder={t('app.date')}
+                                            inputClassName={`bg-transparent text-center focus:outline-none cursor-pointer ${theme.task.editDateInput}`}
+                                            currentTheme={currentTheme}
+                                        />
                                     </div>
-                                  )}
+
+                                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 w-full sm:w-auto">
+                                      <div className={`flex items-center justify-center p-1 rounded-sm ${currentTheme === 'princess' ? 'bg-[var(--c-bg)] text-[var(--c-dark)]' : (currentTheme === 'excel' ? 'bg-[#107C41] text-white' : 'bg-[#007ACC] text-white')}`}>
+                                        <Repeat className="w-3 h-3" />
+                                      </div>
+                                      <select
+                                        value={editingRecurrence}
+                                        onChange={(e) => setEditingRecurrence(e.target.value)}
+                                        className={`outline-none bg-transparent cursor-pointer text-xs ${currentTheme === 'princess' ? 'text-[var(--c-dark)] font-bold' : (currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1] h-6 px-1' : 'text-[#ABB2BF]')}`}
+                                        title={t('app.recurrence')}
+                                      >
+                                        <option value="none" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_none')}</option>
+                                        <option value="daily" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_daily')}</option>
+                                        <option value="weekly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_weekly')}</option>
+                                        <option value="monthly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_monthly')}</option>
+                                        <option value="custom" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_custom')}</option>
+                                      </select>
+                                      {editingRecurrence === 'weekly' && renderDayPicker(editingRecurrenceDays, setEditingRecurrenceDays, editingDate)}
+                                      {editingRecurrence === 'monthly' && (
+                                        <span className={`text-[10px] ml-1 whitespace-nowrap ${currentTheme === 'princess' ? 'text-[var(--c-dark)] opacity-70 font-bold' : (currentTheme === 'excel' ? 'text-slate-500' : 'text-[#ABB2BF] opacity-70')}`}>
+                                          {getRecurrenceHint(editingDate, editingRecurrence)}
+                                        </span>
+                                      )}
+                                      {editingRecurrence === 'custom' && (
+                                        <div className="flex items-center">
+                                          <input
+                                            type="number"
+                                            min="1"
+                                            value={editingRecurrenceInterval}
+                                            onChange={(e) => setEditingRecurrenceInterval(e.target.value)}
+                                            className={`w-8 text-center outline-none bg-transparent text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${currentTheme === 'princess' ? 'border-b border-[var(--c-dark)] text-[var(--c-dark)] font-bold' : (currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1] h-6' : 'border-b border-[#3E3E42] text-[#D19A66]')}`}
+                                          />
+                                          <div className="flex flex-col ml-0.5">
+                                            <button type="button" onClick={() => setEditingRecurrenceInterval(p => Math.max(1, Number(p) + 1))} className={`p-0 hover:bg-black/10 rounded-t ${currentTheme === 'princess' ? 'text-[var(--c-dark)]' : (currentTheme === 'excel' ? 'text-slate-600' : 'text-slate-400')}`}><ChevronUp className="w-2.5 h-2.5" /></button>
+                                            <button type="button" onClick={() => setEditingRecurrenceInterval(p => Math.max(1, Number(p) - 1))} className={`p-0 hover:bg-black/10 rounded-b ${currentTheme === 'princess' ? 'text-[var(--c-dark)]' : (currentTheme === 'excel' ? 'text-slate-600' : 'text-slate-400')}`}><ChevronDown className="w-2.5 h-2.5" /></button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {currentTheme === 'princess' && <span className="text-pink-200 text-[10px] hidden sm:inline">|</span>}
+
+                                    <div className="flex items-center justify-center sm:justify-start gap-0.5 w-full sm:w-auto">
+                                        <input
+                                            type="text"
+                                            value={editingHour}
+                                            onChange={(e) => setEditingHour(e.target.value.replace(/[^0-9]/g, ''))}
+                                            placeholder="12" maxLength={2}
+                                            className={`w-4 sm:w-5 text-center bg-transparent focus:outline-none ${theme.task.editTimeInput}`}
+                                        />
+                                        <span className={`${theme.task.editTimeSeparator}`}>:</span>
+                                        <input
+                                            type="text"
+                                            value={editingMinute}
+                                            onChange={(e) => setEditingMinute(e.target.value.replace(/[^0-9]/g, ''))}
+                                            placeholder="00" maxLength={2}
+                                            className={`w-4 sm:w-5 text-center bg-transparent focus:outline-none ${theme.task.editTimeInput}`}
+                                        />
+                                        <button
+                                            onClick={() => setEditingAmpm(p => p === '오전' ? '오후' : '오전')}
+                                            className={`ml-1 flex items-center justify-center transition-all bg-transparent ${theme.task.editAmpmBtn}`}
+                                        >
+                                            {editingAmpm === '오전' ? t('app.am') : t('app.pm')}
+                                        </button>
+                                    </div>
                                 </div>
 
-                                {currentTheme === 'princess' && <span className="text-pink-200 text-[10px] hidden sm:inline">|</span>}
-
-                                <div className="flex items-center justify-center sm:justify-start gap-0.5 w-full sm:w-auto">
-                                    <input
-                                        type="text"
-                                        value={editingHour}
-                                        onChange={(e) => setEditingHour(e.target.value.replace(/[^0-9]/g, ''))}
-                                        placeholder="12" maxLength={2}
-                                        className={`w-4 sm:w-5 text-center bg-transparent focus:outline-none ${theme.task.editTimeInput}`}
-                                    />
-                                    <span className={`${theme.task.editTimeSeparator}`}>:</span>
-                                    <input
-                                        type="text"
-                                        value={editingMinute}
-                                        onChange={(e) => setEditingMinute(e.target.value.replace(/[^0-9]/g, ''))}
-                                        placeholder="00" maxLength={2}
-                                        className={`w-4 sm:w-5 text-center bg-transparent focus:outline-none ${theme.task.editTimeInput}`}
-                                    />
+                                {/* Right: Actions */}
+                                <div className="flex items-center gap-2 w-full sm:w-auto mt-1 sm:mt-0">
                                     <button
-                                        onClick={() => setEditingAmpm(p => p === '오전' ? '오후' : '오전')}
-                                        className={`ml-1 flex items-center justify-center transition-all bg-transparent ${theme.task.editAmpmBtn}`}
+                                        onClick={cancelEditing}
+                                        className={`transition-all flex items-center justify-center flex-1 sm:flex-none ${theme.task.editCancelBtn}`}
                                     >
-                                        {editingAmpm === '오전' ? t('app.am') : t('app.pm')}
+                                        {currentTheme === 'excel' ? 'Cancel' : (currentTheme === 'developer' ? '[ESC]' : (isMiniMode ? '취소' : <X className="w-4 h-4" />))}
+                                    </button>
+                                    <button
+                                        onClick={() => saveEditing(task.id)}
+                                        className={`transition-all flex items-center justify-center flex-1 sm:flex-none ${theme.task.editSaveBtn}`}
+                                    >
+                                        {currentTheme === 'excel' ? 'Save' : (currentTheme === 'developer' ? '[ENTER]' : (isMiniMode ? '저장' : <Check className="w-4 h-4 stroke-[2.5px]" />))}
                                     </button>
                                 </div>
                             </div>
-
-                            {/* Right: Actions */}
-                            <div className="flex items-center gap-2 w-full sm:w-auto mt-1 sm:mt-0">
-                                <button
-                                    onClick={cancelEditing}
-                                    className={`transition-all flex items-center justify-center flex-1 sm:flex-none ${theme.task.editCancelBtn}`}
-                                >
-                                    {currentTheme === 'excel' ? 'Cancel' : (currentTheme === 'developer' ? '[ESC]' : (isMiniMode ? '취소' : <X className="w-4 h-4" />))}
-                                </button>
-                                <button
-                                    onClick={() => saveEditing(task.id)}
-                                    className={`transition-all flex items-center justify-center flex-1 sm:flex-none ${theme.task.editSaveBtn}`}
-                                >
-                                    {currentTheme === 'excel' ? 'Save' : (currentTheme === 'developer' ? '[ENTER]' : (isMiniMode ? '저장' : <Check className="w-4 h-4 stroke-[2.5px]" />))}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        <span
-                            className={`break-words leading-snug 
-                            ${(isMiniMode && (currentTheme === 'developer' || currentTheme === 'excel'))
-                                    ? 'text-xs'
-                                    : getTextSizeClass(fontSize)}
-                            ${task.completed ? theme.task.textDone : theme.task.textDefault}`}
-                            style={typeof fontSize === 'number' ? (() => {
-                                const base = isMiniMode ? Math.min(17, Math.max(11, fontSize - 2), fontSize) : fontSize;
-                                const mult = getFontScaleMultiplier(fontFamily, currentTheme, base);
-                                return { fontSize: `${Math.round(base * mult)}px` };
-                            })() : {}}
-                        >
-                            {task.text}
-                        </span>
-                        {/* 마감 시간 & 반복 정보 */}
-                        {(task.dueTime || task.dueDate || (task.recurrence && task.recurrence !== 'none')) && (
-                            <span className={`flex flex-wrap items-center gap-1 mt-0.5 ${task.completed ? `${theme.task.timeDefault} opacity-50` :
-                                (task.alerted && notifications.some(n => n.taskId === task.id)) ? 'text-red-400 font-bold animate-pulse' :
-                                    theme.task.timeDefault
-                                } 
-                                ${(isMiniMode && (currentTheme === 'developer' || currentTheme === 'excel'))
-                                    ? 'text-[10px]'
-                                    : getSubTextSizeClass(fontSize)}`}
-                            style={typeof fontSize === 'number' ? (() => {
-                                const base = isMiniMode ? Math.min(14, Math.max(9, fontSize - 5), fontSize - 3) : Math.max(10, fontSize - 3);
-                                const mult = getFontScaleMultiplier(fontFamily, currentTheme, base);
-                                return { fontSize: `${Math.round(base * mult)}px` };
-                            })() : {}}
-                        >
-                                {(task.dueTime || task.dueDate) && (
-                                    <>
-                                        <Clock className="w-2.5 h-2.5" />
-                                        {task.dueDate && <span className="mr-1">{task.dueDate.slice(5).replace('-', '/')}</span>}
-                                        {formatTimeDisplay(task.dueTime)}
-                                    </>
-                                )}
-                                {task.recurrence && task.recurrence !== 'none' && (
-                                    <span className={`flex items-center gap-0.5 ${(task.dueTime || task.dueDate) ? 'ml-1 border-l pl-1.5' : ''} ${currentTheme === 'princess' ? 'border-[var(--c-light)]' : 'border-slate-500'}`}>
-                                        <Repeat className="w-2.5 h-2.5" />
-                                        <span className={currentTheme === 'princess' ? 'text-[var(--c-dark)] font-bold' : ''}>
-                                            {getRecurrenceDisplayText(task)}
-                                        </span>
-                                    </span>
-                                )}
-                            </span>
-                        )}
-
-                        {/* 상세 메모 표시 */}
-                        {task.memo && task.memo.trim() !== '' && (
-                            <div 
-                                className="mt-1.5 w-full"
-                                onClick={(e) => {
-                                    e.stopPropagation(); // 투두 체크 방지
-                                    setIsMemoExpanded(!isMemoExpanded);
-                                }}
-                            >
-                                {/* Collapsed (Summary) Mode */}
-                                {!isMemoExpanded ? (
-                                    <div 
-                                        className={`flex items-center gap-1 text-[10px] select-none hover:opacity-100 transition-opacity cursor-pointer
-                                            ${currentTheme === 'princess'
-                                                ? 'text-[var(--c-dark)] opacity-70 bg-[var(--c-bg)] border border-[var(--c-light-rgb)] px-2 py-0.5 rounded-full w-fit max-w-[90%]'
-                                                : (currentTheme === 'excel'
-                                                    ? 'text-[#217346] font-semibold bg-[#E1F5FE] border border-[#B3E5FC] px-1.5 py-0.5 w-fit max-w-[95%] rounded'
-                                                    : 'text-[#ABB2BF] font-mono opacity-90 border border-[#3E3E42] bg-[#21252B] px-1.5 py-0.5 w-fit max-w-[95%] rounded-sm hover:text-[#61AFEF] hover:border-[#61AFEF] transition-colors')
-                                            }`}
-                                    >
-                                        <FileText className="w-2.5 h-2.5 flex-shrink-0" />
-                                        <span className="truncate">{task.memo.split('\n')[0] || t('app.view_memo')}</span>
-                                    </div>
-                                ) : (
-                                    /* Expanded (Detail) Mode */
-                                    <div 
-                                        className={`p-2.5 text-xs shadow-inner cursor-pointer select-text
-                                            ${currentTheme === 'princess'
-                                                ? 'bg-gradient-to-br from-[var(--c-bg)] to-white border border-dashed border-[var(--c-light)] text-slate-700 font-medium rounded-2xl whitespace-pre-wrap leading-relaxed'
-                                                : (currentTheme === 'excel'
-                                                    ? 'bg-[#FFF8E1] border border-[#FFE082] text-slate-700 font-sans whitespace-pre-wrap leading-normal shadow-sm relative before:content-[\'\'] before:absolute before:top-0 before:right-0 before:border-[6px] before:border-t-[#FFE082] before:border-r-[#FFE082] before:border-b-transparent before:border-l-transparent'
-                                                    : 'bg-[#1E1E1E] border-l-2 border-l-[#007ACC] border border-[#3E3E42] text-[#ABB2BF] font-mono text-[11px] whitespace-pre-wrap leading-normal rounded-sm')
-                                            }`}
-                                    >
-                                        <div className={`flex items-center justify-between border-b pb-1 mb-1 text-[9px] font-bold select-none
-                                            ${currentTheme === 'princess'
-                                                ? 'border-[var(--c-light-rgb)] text-[var(--c-dark)]'
-                                                : (currentTheme === 'excel'
-                                                    ? 'border-[#FFE082] text-[#B71C1C]'
-                                                    : 'border-[#3E3E42] text-[#608B4E]')
-                                            }`}
-                                        >
-                                            <span className="flex items-center gap-1">
-                                                <FileText className="w-3 h-3" />
-                                                {currentTheme === 'developer' ? '// Memo detail' : t('app.memo_detail')}
-                                            </span>
-                                            <span className="opacity-60 text-[8px]">
-                                                {currentTheme === 'developer' ? 'Click to collapse' : t('app.click_to_collapse')}
-                                            </span>
-                                        </div>
-                                        <div className="whitespace-pre-wrap break-words">{renderMemoWithLinks(task.memo)}</div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                     </>
-                )}
-            </div>
-
-            {/* Action Buttons (Hover) */}
-            {editingTaskId !== task.id && (
-                <div className={`absolute right-5 flex items-center opacity-0 group-hover:opacity-100 transition-all duration-300 ${theme.category?.actionButton ? theme.category.actionButton.wrapper : 'gap-2'}`}>
-                    {/* Duplicate Button */}
-                    <button
-                        onClick={(e) => { e.stopPropagation(); duplicateTask(task); }}
-                        className={theme.category?.actionButton ? theme.category.actionButton.button : theme.task.actionBtn}
-                        title={t('app.tooltip_duplicate')}
-                    >
-                        <Copy className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"} />
-                    </button>
-
-                    {/* Edit Button */}
-                    <button
-                        onClick={(e) => { e.stopPropagation(); startEditing(task); }}
-                        className={theme.category?.actionButton ? theme.category.actionButton.button : theme.task.actionBtn}
-                        title={t('app.tooltip_edit')}
-                    >
-                        <Edit2 className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"} />
-                    </button>
-
-                    {/* Delete Button (Inline Confirmation) */}
-                    {confirmingDeleteId === task.id ? (
-                        <div data-delete-confirm-id={task.id} className="flex items-center gap-1 animate-in slide-in-from-right-2 duration-200">
-                            {/* Confirm Delete (Check) */}
-                            <button
-                                onClick={(e) => { e.stopPropagation(); finalDeleteTask(task.id); }}
-                                onMouseDown={(e) => e.stopPropagation()}
-                                className={theme.task.deleteConfirmBtn}
-                                title={t('app.tooltip_confirm_delete')}
-                            >
-                                <Check className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"} />
-                            </button>
-                            {/* Cancel Delete (X) */}
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(null); }}
-                                onMouseDown={(e) => e.stopPropagation()}
-                                className={theme.task.deleteCancelBtn}
-                                title={t('app.tooltip_cancel')}
-                            >
-                                <X className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"} />
-                            </button>
                         </div>
                     ) : (
-                        /* Normal Delete Button */
-                        <button
-                            onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(task.id); }}
-                            onMouseDown={(e) => e.stopPropagation()}
-                            className={theme.category?.actionButton ? theme.category.actionButton.button : theme.task.deleteBtn}
-                            title={t('app.tooltip_delete')}
-                        >
-                            <Trash2 className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"} />
-                        </button>
+                        <>
+                            <span
+                                className={`break-words leading-snug 
+                                ${(isMiniMode && (currentTheme === 'developer' || currentTheme === 'excel'))
+                                        ? 'text-xs'
+                                        : getTextSizeClass(fontSize)}
+                                ${task.completed ? theme.task.textDone : theme.task.textDefault}`}
+                                style={typeof fontSize === 'number' ? (() => {
+                                    const base = isMiniMode ? Math.min(17, Math.max(11, fontSize - 2), fontSize) : fontSize;
+                                    const mult = getFontScaleMultiplier(fontFamily, currentTheme, base);
+                                    return { fontSize: `${Math.round(base * mult)}px` };
+                                })() : {}}
+                            >
+                                {task.text}
+                            </span>
+                            {/* 마감 시간 & 반복 정보 */}
+                            {(task.dueTime || task.dueDate || (task.recurrence && task.recurrence !== 'none')) && (
+                                <span className={`flex flex-wrap items-center gap-1 mt-0.5 ${task.completed ? `${theme.task.timeDefault} opacity-50` :
+                                    (task.alerted && notifications.some(n => n.taskId === task.id)) ? 'text-red-400 font-bold animate-pulse' :
+                                        theme.task.timeDefault
+                                    } 
+                                    ${(isMiniMode && (currentTheme === 'developer' || currentTheme === 'excel'))
+                                        ? 'text-[10px]'
+                                        : getSubTextSizeClass(fontSize)}`}
+                                style={typeof fontSize === 'number' ? (() => {
+                                    const base = isMiniMode ? Math.min(14, Math.max(9, fontSize - 5), fontSize - 3) : Math.max(10, fontSize - 3);
+                                    const mult = getFontScaleMultiplier(fontFamily, currentTheme, base);
+                                    return { fontSize: `${Math.round(base * mult)}px` };
+                                })() : {}}
+                            >
+                                    {(task.dueTime || task.dueDate) && (
+                                        <>
+                                            <Clock className="w-2.5 h-2.5" />
+                                            {task.dueDate && <span className="mr-1">{task.dueDate.slice(5).replace('-', '/')}</span>}
+                                            {formatTimeDisplay(task.dueTime)}
+                                        </>
+                                    )}
+                                    {task.recurrence && task.recurrence !== 'none' && (
+                                        <span className={`flex items-center gap-0.5 ${(task.dueTime || task.dueDate) ? 'ml-1 border-l pl-1.5' : ''} ${currentTheme === 'princess' ? 'border-[var(--c-light)]' : 'border-slate-500'}`}>
+                                            <Repeat className="w-2.5 h-2.5" />
+                                            <span className={currentTheme === 'princess' ? 'text-[var(--c-dark)] font-bold' : ''}>
+                                                {getRecurrenceDisplayText(task)}
+                                            </span>
+                                        </span>
+                                    )}
+                                </span>
+                            )}
+
+                            {/* 상세 메모 표시 */}
+                            {task.memo && task.memo.trim() !== '' && (
+                                <div 
+                                    className="mt-1.5 w-full"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // 투두 체크 방지
+                                        setIsMemoExpanded(!isMemoExpanded);
+                                    }}
+                                >
+                                    {/* Collapsed (Summary) Mode */}
+                                    {!isMemoExpanded ? (
+                                        <div 
+                                            className={`flex items-center gap-1 text-[10px] select-none hover:opacity-100 transition-opacity cursor-pointer
+                                                ${currentTheme === 'princess'
+                                                    ? 'text-[var(--c-dark)] opacity-70 bg-[var(--c-bg)] border border-[var(--c-light-rgb)] px-2 py-0.5 rounded-full w-fit max-w-[90%]'
+                                                    : (currentTheme === 'excel'
+                                                        ? 'text-[#217346] font-semibold bg-[#E1F5FE] border border-[#B3E5FC] px-1.5 py-0.5 w-fit max-w-[95%] rounded'
+                                                        : 'text-[#ABB2BF] font-mono opacity-90 border border-[#3E3E42] bg-[#21252B] px-1.5 py-0.5 w-fit max-w-[95%] rounded-sm hover:text-[#61AFEF] hover:border-[#61AFEF] transition-colors')
+                                                }`}
+                                        >
+                                            <FileText className="w-2.5 h-2.5 flex-shrink-0" />
+                                            <span className="truncate">{task.memo.split('\n')[0] || t('app.view_memo')}</span>
+                                        </div>
+                                    ) : (
+                                        /* Expanded (Detail) Mode */
+                                        <div 
+                                            className={`p-2.5 text-xs shadow-inner cursor-pointer select-text
+                                                ${currentTheme === 'princess'
+                                                    ? 'bg-gradient-to-br from-[var(--c-bg)] to-white border border-dashed border-[var(--c-light)] text-slate-700 font-medium rounded-2xl whitespace-pre-wrap leading-relaxed'
+                                                    : (currentTheme === 'excel'
+                                                        ? 'bg-[#FFF8E1] border border-[#FFE082] text-slate-700 font-sans whitespace-pre-wrap leading-normal shadow-sm relative before:content-[\'\'] before:absolute before:top-0 before:right-0 before:border-[6px] before:border-t-[#FFE082] before:border-r-[#FFE082] before:border-b-transparent before:border-l-transparent'
+                                                        : 'bg-[#1E1E1E] border-l-2 border-l-[#007ACC] border border-[#3E3E42] text-[#ABB2BF] font-mono text-[11px] whitespace-pre-wrap leading-normal rounded-sm')
+                                                }`}
+                                        >
+                                            <div className={`flex items-center justify-between border-b pb-1 mb-1 text-[9px] font-bold select-none
+                                                ${currentTheme === 'princess'
+                                                    ? 'border-[var(--c-light-rgb)] text-[var(--c-dark)]'
+                                                    : (currentTheme === 'excel'
+                                                        ? 'border-[#FFE082] text-[#B71C1C]'
+                                                        : 'border-[#3E3E42] text-[#608B4E]')
+                                                }`}
+                                            >
+                                                <span className="flex items-center gap-1">
+                                                    <FileText className="w-3 h-3" />
+                                                    {currentTheme === 'developer' ? '// Memo detail' : t('app.memo_detail')}
+                                                </span>
+                                                <span className="opacity-60 text-[8px]">
+                                                    {currentTheme === 'developer' ? 'Click to collapse' : t('app.click_to_collapse')}
+                                                </span>
+                                            </div>
+                                            <div className="whitespace-pre-wrap break-words">{renderMemoWithLinks(task.memo)}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                         </>
                     )}
                 </div>
-            )}
+
+                {/* Action Buttons (Hover) */}
+                {editingTaskId !== task.id && (
+                    <div className={`absolute right-5 flex items-center opacity-0 group-hover:opacity-100 transition-all duration-300 ${theme.category?.actionButton ? theme.category.actionButton.wrapper : 'gap-2'}`}>
+                        {/* Duplicate Button */}
+                        <button
+                            onClick={(e) => { e.stopPropagation(); duplicateTask(task); }}
+                            className={theme.category?.actionButton ? theme.category.actionButton.button : theme.task.actionBtn}
+                            title={t('app.tooltip_duplicate')}
+                        >
+                            <Copy className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"} />
+                        </button>
+
+                        {/* Edit Button */}
+                        <button
+                            onClick={(e) => { e.stopPropagation(); startEditing(task); }}
+                            className={theme.category?.actionButton ? theme.category.actionButton.button : theme.task.actionBtn}
+                            title={t('app.tooltip_edit')}
+                        >
+                            <Edit2 className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"} />
+                        </button>
+
+                        {/* Delete Button (Inline Confirmation) */}
+                        {confirmingDeleteId === task.id ? (
+                            <div data-delete-confirm-id={task.id} className="flex items-center gap-1 animate-in slide-in-from-right-2 duration-200">
+                                {/* Confirm Delete (Check) */}
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); finalDeleteTask(task.id); }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    className={theme.task.deleteConfirmBtn}
+                                    title={t('app.tooltip_confirm_delete')}
+                                >
+                                    <Check className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"} />
+                                </button>
+                                {/* Cancel Delete (X) */}
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(null); }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"}
+                                >
+                                    <X className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"} />
+                                </button>
+                            </div>
+                        ) : (
+                            /* Normal Delete Button */
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(task.id); }}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                className={theme.category?.actionButton ? theme.category.actionButton.button : theme.task.deleteBtn}
+                                title={t('app.tooltip_delete')}
+                            >
+                                <Trash2 className={theme.category?.actionButton ? theme.category.actionButton.icon : "w-3 h-3"} />
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 });
