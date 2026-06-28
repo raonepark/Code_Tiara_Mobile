@@ -3018,18 +3018,20 @@ const CodeTiara = () => {
               <div className={`flex items-center gap-1 text-[#FF6B81] relative`}>
 
                 {/* Bell */}
-                <button
-                  onClick={() => setIsNotifOpen(!isNotifOpen)}
-                  className={`p-1 rounded hover:bg-slate-700/10 transition-colors relative ${isNotifOpen || unreadCount > 0 ? theme.accent.text : ''}`}
-                  title={t('app.tooltip_notifications')}
-                >
-                  <Bell className="w-3 h-3" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-0.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 text-[6px] text-white font-bold animate-pulse ring-1 ring-white">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
+                {!isMobile && (
+                  <button
+                    onClick={() => setIsNotifOpen(!isNotifOpen)}
+                    className={`p-1 rounded hover:bg-slate-700/10 transition-colors relative ${isNotifOpen || unreadCount > 0 ? theme.accent.text : ''}`}
+                    title={t('app.tooltip_notifications')}
+                  >
+                    <Bell className="w-3 h-3" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-0.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 text-[6px] text-white font-bold animate-pulse ring-1 ring-white">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                )}
 
                 {/* Settings (Menu Trigger) */}
                 <button
@@ -3089,18 +3091,20 @@ const CodeTiara = () => {
             {currentTheme !== 'princess' && (
               <div className={`flex items-center gap-1 relative ${currentTheme === 'excel' ? 'text-white' : 'text-slate-500'}`}>
                 {/* Bell */}
-                <button
-                  onClick={() => setIsNotifOpen(!isNotifOpen)}
-                  className={`p-1 rounded hover:bg-slate-700/10 transition-colors relative ${isNotifOpen || unreadCount > 0 ? (currentTheme === 'excel' ? 'bg-white/20 font-bold' : theme.accent.text) : ''}`}
-                  title={t('app.tooltip_notifications')}
-                >
-                  <Bell className="w-4 h-4" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-0.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 text-[6px] text-white font-bold animate-pulse ring-1 ring-slate-900">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
+                {!isMobile && (
+                  <button
+                    onClick={() => setIsNotifOpen(!isNotifOpen)}
+                    className={`p-1 rounded hover:bg-slate-700/10 transition-colors relative ${isNotifOpen || unreadCount > 0 ? (currentTheme === 'excel' ? 'bg-white/20 font-bold' : theme.accent.text) : ''}`}
+                    title={t('app.tooltip_notifications')}
+                  >
+                    <Bell className="w-4 h-4" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-0.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 text-[6px] text-white font-bold animate-pulse ring-1 ring-slate-900">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                )}
 
                 {/* Settings (Menu Trigger) */}
                 <button
