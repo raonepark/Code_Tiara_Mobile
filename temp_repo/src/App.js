@@ -235,7 +235,7 @@ const CodeTiara = () => {
     { id: 3, text: t('app.task_plan'), categoryId: 'cat_1', completed: false, dueTime: '', alerted: false },
   ];
 
-  const defaultTitle = 'My Board';
+  const defaultTitle = 'Code Tiara';
 
   // --- State 관리 ---
   const [categories, setCategories] = useState(() => {
@@ -3045,13 +3045,15 @@ const CodeTiara = () => {
           {/* Center: Title (Perfect Centering) */}
           <div className="flex-1 flex justify-center text-[10px] font-bold px-2 pointer-events-none w-1/3">
             <span 
-              className={`truncate max-w-[150px] sm:max-w-[200px] text-center ${
+              className={`whitespace-nowrap text-center ${
                 currentTheme === 'princess' 
                   ? 'text-sm font-bold tracking-tight text-[#FF6B81]' 
                   : `text-xs sm:text-sm font-bold ${currentTheme === 'excel' ? 'text-white' : theme.header.text} uppercase tracking-widest`
               }`}
             >
-              {currentTheme === 'princess' && projectTitle === defaultTitle ? <>{t('app.my_diary')} <span className="text-xs">🎀</span></> : projectTitle}
+              {projectTitle === 'Code Tiara' || projectTitle === 'My Board' || projectTitle === 'My Diary' || projectTitle === '나의 다이어리'
+                ? (currentTheme === 'princess' ? <>Code Tiara <span className="text-xs">🎀</span></> : 'Code Tiara')
+                : projectTitle}
             </span>
           </div>
 
