@@ -317,6 +317,11 @@ const TaskItem = memo(({
                         e.stopPropagation();
                         finalDeleteTask(task.id);
                     }}
+                    style={{
+                        opacity: swipeOffset > 0 ? 1 : 0,
+                        pointerEvents: swipeOffset > 0 ? 'auto' : 'none',
+                        transition: 'opacity 0.2s ease-in-out'
+                    }}
                     className="absolute right-0 top-0 bottom-0 w-[70px] bg-[#FF4D4D] hover:bg-[#FF3333] flex items-center justify-center text-white z-0 cursor-pointer"
                 >
                     <Trash2 className="w-5 h-5 animate-in zoom-in-50 duration-200" />
@@ -326,7 +331,7 @@ const TaskItem = memo(({
             <div
                 className={
                     isMobile
-                        ? `${theme.category.taskItem} ${isMiniMode ? '!mx-0 !mb-1 !p-1.5 last:!mb-0' : ''} ${task.completed ? 'opacity-60' : ''} flex-1 flex items-center w-full z-10`
+                        ? `${theme.category.taskItem} !mx-0 !my-0 !mb-0 !mt-0 ${isMiniMode ? '!mx-0 !mb-1 !p-1.5 last:!mb-0' : ''} ${task.completed ? 'opacity-60' : ''} flex-1 flex items-center w-full z-10`
                         : "flex-1 flex items-center w-full z-10 bg-inherit"
                 }
                 style={{
