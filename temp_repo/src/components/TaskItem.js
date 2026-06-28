@@ -274,7 +274,16 @@ const TaskItem = memo(({
                 }
                 if (editingTaskId !== task.id) toggleTask(task.id);
             }}
-            className={`${theme.category.taskItem} ${isMiniMode ? '!mx-0 !mb-1 !p-1.5 last:!mb-0' : ''} cursor-pointer active:cursor-grabbing relative ${task.completed ? 'opacity-60' : ''} ${snapshot.isDragging ? 'shadow-lg z-50 ' + theme.task.dragShadow : ''} ${isMobile ? 'overflow-hidden' : ''}`}
+            className={
+                isMobile
+                    ? `relative overflow-hidden bg-transparent !border-none !shadow-none !p-0 ${
+                          isMiniMode ? '!mx-0 !mb-1 last:!mb-0' : ''
+                      } ${
+                          currentTheme === 'princess' ? 'mb-2 mx-3 first:mt-3 last:mb-0' : 
+                          (currentTheme === 'developer' ? 'mb-1' : '')
+                      } ${snapshot.isDragging ? 'shadow-lg z-50 ' + theme.task.dragShadow : ''}`
+                    : `${theme.category.taskItem} ${isMiniMode ? '!mx-0 !mb-1 !p-1.5 last:!mb-0' : ''} cursor-pointer active:cursor-grabbing relative ${task.completed ? 'opacity-60' : ''} ${snapshot.isDragging ? 'shadow-lg z-50 ' + theme.task.dragShadow : ''}`
+            }
         >
             {/* Absolute swipe delete background */}
             {isMobile && (
@@ -290,7 +299,11 @@ const TaskItem = memo(({
             )}
 
             <div
-                className="flex-1 flex items-center w-full z-10 bg-inherit"
+                className={
+                    isMobile
+                        ? `${theme.category.taskItem} ${isMiniMode ? '!mx-0 !mb-1 !p-1.5 last:!mb-0' : ''} ${task.completed ? 'opacity-60' : ''} flex-1 flex items-center w-full z-10`
+                        : "flex-1 flex items-center w-full z-10 bg-inherit"
+                }
                 style={{
                     transform: `translateX(-${swipeOffset}px)`,
                     transition: touchStart ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
