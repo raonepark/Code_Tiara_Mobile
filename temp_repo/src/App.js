@@ -2968,10 +2968,10 @@ const CodeTiara = () => {
         {/* Terminal Header Bar */}
         {!popoutCategoryId && (
         <div className={`${theme.header.bg} px-3 h-10 flex items-center justify-between ${theme.header.border} border-b relative z-[999] shrink-0 select-none`} style={{ WebkitAppRegion: 'drag', transform: 'translateZ(0)' }}>
-          {/* Left: Window Controls & Title */}
-          <div className="flex items-center gap-3 z-10">
+          {/* Left: Window Controls & Date Filter */}
+          <div className="flex items-center gap-2 z-10 w-1/3 justify-start" style={{ WebkitAppRegion: 'no-drag' }}>
             {!isMobile && (
-              <div className="flex gap-1.5" style={{ WebkitAppRegion: 'no-drag' }}>
+              <div className="flex gap-1.5 mr-2">
                 <button
                   onClick={() => sendIPC('close-window')}
                   className={`w-2.5 h-2.5 rounded-full bg-[#FF5F56] hover:bg-[#FF5F56]/80 transition-colors cursor-pointer flex items-center justify-center group`}
@@ -2995,18 +2995,59 @@ const CodeTiara = () => {
                 </button>
               </div>
             )}
-
-            <div className="flex items-center gap-1">
-              <span 
-                className={`truncate max-w-[180px] sm:max-w-[300px] ${
-                  currentTheme === 'princess' 
-                    ? 'text-sm font-bold tracking-tight text-[#FF6B81]' 
-                    : `text-xs sm:text-sm font-bold ${currentTheme === 'excel' ? 'text-white' : theme.header.text} uppercase tracking-widest`
-                }`}
+            
+            {/* Date Filter Dropdown */}
+            <div className={`flex items-center gap-0.5 text-[11px] font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-white' : 'text-slate-500')}`}>
+              <CustomDatePicker
+                value={filterDate}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setFilterDate(e.target.value);
+                    setFilterMode('daily');
+                  }
+                }}
+                currentTheme={currentTheme}
+                customTrigger={<Calendar className={`w-3.5 h-3.5 hover:scale-110 cursor-pointer transition-transform ${currentTheme === 'excel' ? 'text-white' : ''}`} />}
+              />
+              <select
+                value={filterMode}
+                onChange={(e) => {
+                  setFilterMode(e.target.value);
+                  setFilterDate(getLocalDateString());
+                }}
+                className={`outline-none cursor-pointer text-xs font-bold ${
+                  currentTheme === 'excel' ? 'bg-[#107C41] text-white border-none' : 
+                  (currentTheme === 'developer' ? 'bg-[#1E1E1E] text-[#ABB2BF] border-none' : 'bg-transparent text-slate-600 border-none')
+                } ${currentTheme === 'princess' ? 'text-[#FF6B81]' : ''}`}
+                title={t('app.tooltip_date_filter')}
               >
-                {currentTheme === 'princess' && projectTitle === defaultTitle ? <>{t('app.my_diary')} <span className="text-xs">🎀</span></> : projectTitle}
-              </span>
+                <option value="all" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_all')}</option>
+                <option value="daily" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_daily')}</option>
+                <option value="weekly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_weekly')}</option>
+                <option value="monthly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_monthly')}</option>
+              </select>
+              
+              {filterMode !== 'all' && (
+                <div className="flex items-center gap-0.5 ml-0.5">
+                  <button onClick={() => shiftFilterDate('prev')} className={`p-0.5 rounded transition-colors hover:scale-110 active:scale-95 ${currentTheme === 'princess' ? 'hover:bg-[#FFC0CB]/30' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}><ChevronLeft className="w-3 h-3" /></button>
+                  <span className="min-w-[40px] text-center text-[10px] sm:text-[11px]">{getFilterDisplayString()}</span>
+                  <button onClick={() => shiftFilterDate('next')} className={`p-0.5 rounded transition-colors hover:scale-110 active:scale-95 ${currentTheme === 'princess' ? 'hover:bg-[#FFC0CB]/30' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}><ChevronRight className="w-3 h-3" /></button>
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Center: Title (Perfect Centering) */}
+          <div className="flex-1 flex justify-center text-[10px] font-bold px-2 pointer-events-none w-1/3">
+            <span 
+              className={`truncate max-w-[150px] sm:max-w-[200px] text-center ${
+                currentTheme === 'princess' 
+                  ? 'text-sm font-bold tracking-tight text-[#FF6B81]' 
+                  : `text-xs sm:text-sm font-bold ${currentTheme === 'excel' ? 'text-white' : theme.header.text} uppercase tracking-widest`
+              }`}
+            >
+              {currentTheme === 'princess' && projectTitle === defaultTitle ? <>{t('app.my_diary')} <span className="text-xs">🎀</span></> : projectTitle}
+            </span>
           </div>
 
           {/* Right: Icons Group */}
@@ -3498,40 +3539,42 @@ const CodeTiara = () => {
                       <div className="font-serif italic text-slate-500 font-bold px-1 shrink-0">fx</div>
                       
                       {/* Date Filter Integrated into Formula Bar */}
-                      <div className="flex items-center gap-1 bg-white border border-[#D1D5DB] px-1 h-[22px] shadow-sm inset-shadow shrink-0">
-                        <CustomDatePicker
-                          value={filterDate}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              setFilterDate(e.target.value);
-                              setFilterMode('daily');
-                            }
-                          }}
-                          currentTheme={currentTheme}
-                          customTrigger={<Calendar className="w-3 h-3 text-[#217346] hover:scale-110 cursor-pointer transition-transform" />}
-                        />
-                        <select
-                          value={filterMode}
-                          onChange={(e) => {
-                            setFilterMode(e.target.value);
-                            setFilterDate(getLocalDateString());
-                          }}
-                          className="bg-transparent outline-none cursor-pointer border-none font-bold text-slate-600"
-                          title={t('app.tooltip_date_filter')}
-                        >
-                          <option value="all" className="bg-white text-slate-800">{t('app.filter_all')}</option>
-                          <option value="daily" className="bg-white text-slate-800">{t('app.filter_daily')}</option>
-                          <option value="weekly" className="bg-white text-slate-800">{t('app.filter_weekly')}</option>
-                          <option value="monthly" className="bg-white text-slate-800">{t('app.filter_monthly')}</option>
-                        </select>
-                        {filterMode !== 'all' && (
-                          <div className="flex items-center gap-0.5 ml-0.5 pl-1 border-l border-[#E1E1E1]">
-                            <button onClick={() => shiftFilterDate('prev')} className="hover:bg-slate-100 p-0.5 rounded"><ChevronLeft className="w-3 h-3" /></button>
-                            <span className="min-w-[50px] text-center font-medium">{getFilterDisplayString()}</span>
-                            <button onClick={() => shiftFilterDate('next')} className="hover:bg-slate-100 p-0.5 rounded"><ChevronRight className="w-3 h-3" /></button>
-                          </div>
-                        )}
-                      </div>
+                      {!isMobile && (
+                        <div className="flex items-center gap-1 bg-white border border-[#D1D5DB] px-1 h-[22px] shadow-sm inset-shadow shrink-0">
+                          <CustomDatePicker
+                            value={filterDate}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setFilterDate(e.target.value);
+                                setFilterMode('daily');
+                              }
+                            }}
+                            currentTheme={currentTheme}
+                            customTrigger={<Calendar className="w-3 h-3 text-[#217346] hover:scale-110 cursor-pointer transition-transform" />}
+                          />
+                          <select
+                            value={filterMode}
+                            onChange={(e) => {
+                              setFilterMode(e.target.value);
+                              setFilterDate(getLocalDateString());
+                            }}
+                            className="bg-transparent outline-none cursor-pointer border-none font-bold text-slate-600"
+                            title={t('app.tooltip_date_filter')}
+                          >
+                            <option value="all" className="bg-white text-slate-800">{t('app.filter_all')}</option>
+                            <option value="daily" className="bg-white text-slate-800">{t('app.filter_daily')}</option>
+                            <option value="weekly" className="bg-white text-slate-800">{t('app.filter_weekly')}</option>
+                            <option value="monthly" className="bg-white text-slate-800">{t('app.filter_monthly')}</option>
+                          </select>
+                          {filterMode !== 'all' && (
+                            <div className="flex items-center gap-0.5 ml-0.5 pl-1 border-l border-[#E1E1E1]">
+                              <button onClick={() => shiftFilterDate('prev')} className="hover:bg-slate-100 p-0.5 rounded"><ChevronLeft className="w-3 h-3" /></button>
+                              <span className="min-w-[50px] text-center font-medium">{getFilterDisplayString()}</span>
+                              <button onClick={() => shiftFilterDate('next')} className="hover:bg-slate-100 p-0.5 rounded"><ChevronRight className="w-3 h-3" /></button>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {!isMiniMode && (
                         <div className="flex-1 bg-white border border-[#D1D5DB] px-2 py-0.5 text-slate-700 h-[22px] flex items-center gap-2 shadow-sm inset-shadow min-w-max">
@@ -3551,41 +3594,43 @@ const CodeTiara = () => {
                       {/* 1. Statistics Row (Date Left, Count Right) */}
                       <div className={`flex justify-between ${isMiniMode ? 'items-center' : 'items-end mb-1'}`}>
                         {/* Left: Date Navigation Filter */}
-                        <div className={`flex items-center gap-0.5 text-[11px] font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
-                          <CustomDatePicker
-                            value={filterDate}
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                setFilterDate(e.target.value);
-                                setFilterMode('daily');
-                              }
-                            }}
-                            currentTheme={currentTheme}
-                            customTrigger={<Calendar className="w-3 h-3 hover:scale-110 cursor-pointer transition-transform" />}
-                          />
-                          <select
-                            value={filterMode}
-                            onChange={(e) => {
-                              setFilterMode(e.target.value);
-                              setFilterDate(getLocalDateString());
-                            }}
-                            className={`outline-none cursor-pointer text-[10px] sm:text-[11px] ${currentTheme === 'developer' ? 'bg-[#1E1E1E] text-[#ABB2BF]' : 'bg-transparent'}`}
-                            title={t('app.tooltip_view_mode')}
-                          >
-                            <option value="all" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_all')}</option>
-                            <option value="daily" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_daily')}</option>
-                            <option value="weekly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_weekly')}</option>
-                            <option value="monthly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_monthly')}</option>
-                          </select>
-                          
-                          {filterMode !== 'all' && (
-                            <div className="flex items-center gap-0.5 ml-0.5">
-                              <button onClick={() => shiftFilterDate('prev')} className={`p-0.5 rounded transition-colors hover:scale-110 active:scale-95 ${currentTheme === 'princess' ? 'hover:bg-[#FFC0CB]/30' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}><ChevronLeft className="w-3 h-3" /></button>
-                              <span className="min-w-[40px] text-center text-[10px] sm:text-[11px]">{getFilterDisplayString()}</span>
-                              <button onClick={() => shiftFilterDate('next')} className={`p-0.5 rounded transition-colors hover:scale-110 active:scale-95 ${currentTheme === 'princess' ? 'hover:bg-[#FFC0CB]/30' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}><ChevronRight className="w-3 h-3" /></button>
-                            </div>
-                          )}
-                        </div>
+                        {!isMobile && (
+                          <div className={`flex items-center gap-0.5 text-[11px] font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
+                            <CustomDatePicker
+                              value={filterDate}
+                              onChange={(e) => {
+                                if (e.target.value) {
+                                  setFilterDate(e.target.value);
+                                  setFilterMode('daily');
+                                }
+                              }}
+                              currentTheme={currentTheme}
+                              customTrigger={<Calendar className="w-3 h-3 hover:scale-110 cursor-pointer transition-transform" />}
+                            />
+                            <select
+                              value={filterMode}
+                              onChange={(e) => {
+                                setFilterMode(e.target.value);
+                                setFilterDate(getLocalDateString());
+                              }}
+                              className={`outline-none cursor-pointer text-[10px] sm:text-[11px] ${currentTheme === 'developer' ? 'bg-[#1E1E1E] text-[#ABB2BF]' : 'bg-transparent'}`}
+                              title={t('app.tooltip_view_mode')}
+                            >
+                              <option value="all" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_all')}</option>
+                              <option value="daily" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_daily')}</option>
+                              <option value="weekly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_weekly')}</option>
+                              <option value="monthly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_monthly')}</option>
+                            </select>
+                            
+                            {filterMode !== 'all' && (
+                              <div className="flex items-center gap-0.5 ml-0.5">
+                                <button onClick={() => shiftFilterDate('prev')} className={`p-0.5 rounded transition-colors hover:scale-110 active:scale-95 ${currentTheme === 'princess' ? 'hover:bg-[#FFC0CB]/30' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}><ChevronLeft className="w-3 h-3" /></button>
+                                <span className="min-w-[40px] text-center text-[10px] sm:text-[11px]">{getFilterDisplayString()}</span>
+                                <button onClick={() => shiftFilterDate('next')} className={`p-0.5 rounded transition-colors hover:scale-110 active:scale-95 ${currentTheme === 'princess' ? 'hover:bg-[#FFC0CB]/30' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}><ChevronRight className="w-3 h-3" /></button>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {/* Right: Task Count */}
                         <span className={`text-[10px] sm:text-[11px] font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
