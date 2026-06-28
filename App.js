@@ -52,7 +52,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: config.backgroundColor }]}>
-      <StatusBar style={config.statusBarStyle} backgroundColor={config.backgroundColor} />
+      <StatusBar style={config.statusBarStyle} translucent={true} backgroundColor="transparent" />
       <WebView 
         source={{ uri: PC_WEB_URL }} 
         style={styles.webview}

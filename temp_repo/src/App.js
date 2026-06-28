@@ -2728,9 +2728,9 @@ const CodeTiara = () => {
 
   return (
       <div
-        className={`h-screen w-screen flex flex-col overflow-hidden transition-colors duration-500 ${popoutCategoryId ? 'bg-transparent' : `${theme.radius} ${theme.root}`}`}
+        className={`h-screen w-screen flex flex-col overflow-hidden transition-colors duration-500 ${popoutCategoryId ? 'bg-transparent' : `${(!isMobile && theme.radius) || ''} ${theme.root}`}`}
         style={{
-          border: popoutCategoryId ? 'none' : `2px solid ${theme.windowBorder || 'transparent'}`,
+          border: (popoutCategoryId || isMobile) ? 'none' : `2px solid ${theme.windowBorder || 'transparent'}`,
           backgroundColor: popoutCategoryId ? 'transparent' : undefined
         }}
       >
@@ -5005,7 +5005,7 @@ const CodeTiara = () => {
                       }`}
                     >
                       <Copy className="w-5 h-5" />
-                      <span className="text-[10px] font-bold">{t('tooltip_duplicate') || '복사'}</span>
+                      <span className="text-[10px] font-bold">{t('app.tooltip_duplicate') || '복사'}</span>
                     </button>
 
                     {/* Edit */}
@@ -5018,7 +5018,7 @@ const CodeTiara = () => {
                       }`}
                     >
                       <Edit2 className="w-5 h-5" />
-                      <span className="text-[10px] font-bold">{t('tooltip_edit') || '수정'}</span>
+                      <span className="text-[10px] font-bold">{t('app.tooltip_edit') || '수정'}</span>
                     </button>
 
                     {/* Move Category */}
@@ -5044,7 +5044,7 @@ const CodeTiara = () => {
                       }`}
                     >
                       <Trash2 className="w-5 h-5" />
-                      <span className="text-[10px] font-bold">{t('tooltip_delete') || '삭제'}</span>
+                      <span className="text-[10px] font-bold">{t('app.tooltip_delete') || '삭제'}</span>
                     </button>
                   </div>
                 </>
