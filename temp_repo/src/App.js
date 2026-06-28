@@ -544,6 +544,7 @@ const CodeTiara = () => {
   // ✨ Mini Mode Detection (< 450px)
   const [isMiniMode, setIsMiniMode] = useState(window.innerWidth < 450);
   const [isMenuOpen, setIsMenuOpen] = useState(false); // ✨ Menu Toggle State
+  const [isDateFilterDropdownOpen, setIsDateFilterDropdownOpen] = useState(false); // ✨ Date Filter Dropdown State
 
   const handleLogOut = async () => {
     isGuestModeRef.current = false;
@@ -2157,6 +2158,18 @@ const CodeTiara = () => {
   }, [miniModeAdderId]);
 
   const menuRef = useRef(null);
+  const dateFilterRef = useRef(null);
+
+  // ✨ Click Outside for Date Filter Dropdown
+  useEffect(() => {
+    const handleClickOutsideDateFilter = (e) => {
+      if (isDateFilterDropdownOpen && dateFilterRef.current && !dateFilterRef.current.contains(e.target) && !e.target.closest('.date-filter-trigger-btn')) {
+        setIsDateFilterDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutsideDateFilter);
+    return () => document.removeEventListener('mousedown', handleClickOutsideDateFilter);
+  }, [isDateFilterDropdownOpen]);
 
   // ✨ Click Outside for Menu
   useEffect(() => {
@@ -2997,7 +3010,7 @@ const CodeTiara = () => {
             )}
             
             {/* Date Filter Dropdown */}
-            <div className={`flex items-center gap-0.5 text-[11px] font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-white' : 'text-slate-500')}`}>
+            <div ref={dateFilterRef} className={`flex items-center gap-0.5 text-[11px] font-bold relative ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-white' : 'text-slate-500')}`}>
               <CustomDatePicker
                 value={filterDate}
                 onChange={(e) => {
@@ -3013,24 +3026,66 @@ const CodeTiara = () => {
                   'text-[#ABB2BF]'
                 }`} />}
               />
-              <select
-                value={filterMode}
-                onChange={(e) => {
-                  setFilterMode(e.target.value);
-                  setFilterDate(getLocalDateString());
-                }}
-                className={`outline-none cursor-pointer text-xs font-bold bg-transparent border-none ${
+              
+              {/* Custom Dropdown Trigger Button */}
+              <button
+                onClick={() => setIsDateFilterDropdownOpen(!isDateFilterDropdownOpen)}
+                className={`date-filter-trigger-btn flex items-center gap-0.5 outline-none cursor-pointer text-xs font-bold bg-transparent border-none ${
                   currentTheme === 'princess' ? 'text-[#FF6B81] font-gamja' : 
                   currentTheme === 'excel' ? 'text-white font-sans' : 
                   'text-[#ABB2BF] font-mono'
                 }`}
                 title={t('app.tooltip_date_filter')}
               >
-                <option value="all" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_all')}</option>
-                <option value="daily" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_daily')}</option>
-                <option value="weekly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_weekly')}</option>
-                <option value="monthly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_monthly')}</option>
-              </select>
+                <span>
+                  {filterMode === 'all' && t('app.filter_all')}
+                  {filterMode === 'daily' && t('app.filter_daily')}
+                  {filterMode === 'weekly' && t('app.filter_weekly')}
+                  {filterMode === 'monthly' && t('app.filter_monthly')}
+                </span>
+                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isDateFilterDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Custom Dropdown Menu Panel (Pops Down) */}
+              {isDateFilterDropdownOpen && (
+                <div className={`absolute left-0 top-[26px] w-32 z-[9999] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 rounded-lg shadow-lg border
+                  ${currentTheme === 'princess' 
+                    ? 'bg-white border-[#FFC0CB] text-[#FF6B81] font-gamja' 
+                    : (currentTheme === 'excel' 
+                      ? 'bg-white border-[#D1D5DB] text-slate-800 font-sans' 
+                      : 'bg-[#252526] border-[#3E3E42] text-[#D4D4D4] font-mono')
+                  }`}
+                >
+                  {[
+                    { value: 'all', label: t('app.filter_all') },
+                    { value: 'daily', label: t('app.filter_daily') },
+                    { value: 'weekly', label: t('app.filter_weekly') },
+                    { value: 'monthly', label: t('app.filter_monthly') }
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setFilterMode(opt.value);
+                        setFilterDate(getLocalDateString());
+                        setIsDateFilterDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs font-bold flex items-center justify-between transition-colors
+                        ${filterMode === opt.value 
+                          ? (currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' : (currentTheme === 'excel' ? 'bg-[#E2F0D9] text-[#107C41]' : 'bg-[#007ACC]/20 text-white'))
+                          : (currentTheme === 'princess' ? 'hover:bg-pink-50 text-slate-600' : (currentTheme === 'excel' ? 'hover:bg-slate-50 text-slate-700' : 'hover:bg-[#3E3E42] text-[#D4D4D4]'))
+                        }`}
+                    >
+                      <span>{opt.label}</span>
+                      {filterMode === opt.value && (
+                        <Check className={`w-3.5 h-3.5 ${
+                          currentTheme === 'princess' ? 'text-[#FF6B81]' : 
+                          (currentTheme === 'excel' ? 'text-[#107C41]' : 'text-[#61AFEF]')
+                        }`} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
               
               {filterMode !== 'all' && (
                 <div className="flex items-center gap-0.5 ml-0.5">
