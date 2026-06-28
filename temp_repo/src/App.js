@@ -5,9 +5,10 @@ import {
   Download, Upload, Timer, Pause, Play, ChevronUp, ChevronDown, Clock, Bell,
   Star, Coffee, Music, Home, Briefcase, Heart, Sun, Moon, Hourglass,
   PanelTopClose, PanelTopOpen, Edit2, Check, Grid2X2, Calendar, Minus, GripVertical, Menu, Gift,
-  ChevronLeft, ChevronRight, Repeat, Pin, PinOff, Mail
+  ChevronLeft, ChevronRight, Repeat, Pin, PinOff, Mail, Copy, ArrowUp, AlignLeft
 } from 'lucide-react';
 import CustomDatePicker from './components/CustomDatePicker';
+import CustomSelect from './components/CustomSelect';
 import TaskItem from './components/TaskItem';
 import SettingsPanel from './components/SettingsPanel';
 import OnboardingPanel from './components/OnboardingPanel';
@@ -341,6 +342,11 @@ const CodeTiara = () => {
       }
     }
 
+    // ✨ Mobile UX: Increase font size overall for mobile
+    if (window.innerWidth <= 768) {
+      baseScale *= 1.15;
+    }
+
     if (baseScale === 1.0) return 1.0;
 
     // Taper factor based on size/class to avoid oversized header fonts
@@ -423,6 +429,11 @@ const CodeTiara = () => {
   const [taskHour, setTaskHour] = useState('');
   const [taskMinute, setTaskMinute] = useState('');
   const [taskAmpm, setTaskAmpm] = useState('오전');
+  
+  // ✨ Mobile UX States
+  const [longPressedTask, setLongPressedTask] = useState(null);
+  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [showAdvancedAdd, setShowAdvancedAdd] = useState(false);
   
   // ✨ 반복 및 필터 State
   const [taskRecurrence, setTaskRecurrence] = useState('none');
@@ -1622,8 +1633,93 @@ const CodeTiara = () => {
     return '';
   };
 
+  const getRecurrenceDisplayText = (recurrence, recurrenceInterval, recurrenceDays, dueDate) => {
+    if (!recurrence || recurrence === 'none') return '';
+    
+    if (recurrence === 'daily') return t('app.recurrence_daily');
+    if (recurrence === 'monthly') {
+      const d = parseLocalDate(dueDate || getLocalDateString());
+      return t('app.monthly_format', { day: d.getDate() });
+    }
+    if (recurrence === 'custom') return t('app.custom_days', { interval: recurrenceInterval || 1 });
+    if (recurrence === 'weekly') {
+      const daysArr = [
+        t('app.sun'),
+        t('app.mon'),
+        t('app.tue'),
+        t('app.wed'),
+        t('app.thu'),
+        t('app.fri'),
+        t('app.sat')
+      ];
+      const defaultDay = parseLocalDate(dueDate || getLocalDateString()).getDay();
+      const activeDays = (recurrenceDays && recurrenceDays.length > 0) ? recurrenceDays : [defaultDay];
+      const dayStrings = activeDays.map(d => daysArr[d]).join(', ');
+      return t('app.weekly_format', { days: dayStrings });
+    }
+    return '';
+  };
+
+  const renderMobileDayPicker = (currentDays, setDays, referenceDateStr) => {
+    const daysArr = [
+      t('app.sun'),
+      t('app.mon'),
+      t('app.tue'),
+      t('app.wed'),
+      t('app.thu'),
+      t('app.fri'),
+      t('app.sat')
+    ];
+    const defaultDay = parseLocalDate(referenceDateStr || getLocalDateString()).getDay();
+    const activeDays = (currentDays && currentDays.length > 0) ? currentDays : [defaultDay];
+
+    const toggleDay = (idx) => {
+      if (activeDays.includes(idx)) {
+        if (activeDays.length === 1) return;
+        setDays(activeDays.filter(d => d !== idx));
+      } else {
+        setDays([...activeDays, idx].sort());
+      }
+    };
+
+    return (
+      <div className="flex justify-between items-center gap-1 w-full mt-1.5 px-1">
+        {daysArr.map((dayLabel, idx) => {
+          const isActive = activeDays.includes(idx);
+          let btnClass = '';
+          if (currentTheme === 'princess') {
+            btnClass = isActive ? 'bg-[var(--c-dark)] text-white shadow-sm font-extrabold' : 'bg-white text-[var(--c-dark)] border border-[var(--c-light)] opacity-70 font-semibold';
+          } else if (currentTheme === 'excel') {
+            btnClass = isActive ? 'bg-[#107C41] text-white border border-[#107C41] font-bold' : 'bg-[#F3F2F1] text-slate-600 border border-[#D1D1D1]';
+          } else {
+            btnClass = isActive ? 'bg-[#007ACC] text-white font-bold' : 'bg-[#2D2D30] text-[#ABB2BF] border border-[#3E3E42]';
+          }
+
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => toggleDay(idx)}
+              className={`w-9 h-9 flex items-center justify-center rounded-full text-xs transition-all active:scale-95 ${btnClass}`}
+            >
+              {dayLabel}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderDayPicker = (currentDays, setDays, referenceDateStr) => {
-    const daysArr = ['일', '월', '화', '수', '목', '금', '토'];
+    const daysArr = [
+      t('app.sun'),
+      t('app.mon'),
+      t('app.tue'),
+      t('app.wed'),
+      t('app.thu'),
+      t('app.fri'),
+      t('app.sat')
+    ];
     const defaultDay = parseLocalDate(referenceDateStr || getLocalDateString()).getDay();
     const activeDays = (currentDays && currentDays.length > 0) ? currentDays : [defaultDay];
 
@@ -1697,6 +1793,16 @@ const CodeTiara = () => {
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   };
+
+  // ✨ Mobile UX Handlers
+  const handleTaskLongPress = useCallback((task) => {
+    if (editingTaskId !== task.id) {
+        setLongPressedTask(task);
+        if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(50);
+        }
+    }
+  }, [editingTaskId]);
 
   const toggleTask = (id) => {
     setTasks(prevTasks => {
@@ -2944,20 +3050,13 @@ const CodeTiara = () => {
 
                       {/* Menu Items */}
                       <div className="flex flex-col py-1 relative z-10 bg-white">
+                        {/* Mini mode button removed for mobile */}
                         <button
-                          onClick={() => { sendIPC('toggle-mini-mode'); setIsMiniMode(!isMiniMode); setIsMenuOpen(false); setIsSettingsOpen(false); }}
-                          className="px-3 py-2 text-xs font-bold hover:bg-[#FFF0F5] hover:text-[#FF6B81] text-left flex items-center gap-2 transition-colors"
+                          onClick={handleMenuTimerClick}
+                          className="hidden sm:flex px-3 py-2 text-xs font-bold hover:bg-[#FFF0F5] hover:text-[#FF6B81] text-left items-center gap-2 transition-colors"
                         >
-                          <span>{isMiniMode ? '🖥️' : '📱'}</span> {isMiniMode ? t('app.full_mode') : t('app.mini_mode')}
+                          <span>⏱️</span> {t('app.timer')}
                         </button>
-                        {!isMobile && (
-                          <button
-                            onClick={handleMenuTimerClick}
-                            className="px-3 py-2 text-xs font-bold hover:bg-[#FFF0F5] hover:text-[#FF6B81] text-left flex items-center gap-2 transition-colors"
-                          >
-                            <span>⏱️</span> {t('app.timer')}
-                          </button>
-                        )}
                         <button
                           onClick={() => { setIsClearConfirmOpen(true); setIsMenuOpen(false); setIsSettingsOpen(false); }}
                           className="px-3 py-2 text-xs font-bold hover:bg-[#FFF0F5] hover:text-[#FF6B81] text-left flex items-center gap-2 transition-colors"
@@ -3027,20 +3126,13 @@ const CodeTiara = () => {
                       )}
 
                       <div className={`flex flex-col py-1 relative z-10 ${currentTheme === 'princess' ? 'bg-white' : ''}`}>
+                        {/* Mini mode button removed for mobile */}
                         <button
-                          onClick={() => { sendIPC('toggle-mini-mode'); setIsMiniMode(!isMiniMode); setIsMenuOpen(false); setIsSettingsOpen(false); }}
-                          className={`px-3 py-2 text-xs font-bold text-left flex items-center gap-2 transition-colors ${theme.dropdown.itemInactive}`}
+                          onClick={handleMenuTimerClick}
+                          className={`hidden sm:flex px-3 py-2 text-xs font-bold text-left items-center gap-2 transition-colors ${theme.dropdown.itemInactive}`}
                         >
-                          <span className={theme.iconType === 'table' ? "opacity-100" : ""}>{isMiniMode ? '🖥️' : '📱'}</span> {isMiniMode ? t('app.full_mode') : t('app.mini_mode')}
+                          <span className={theme.iconType === 'table' ? "opacity-100" : ""}>⏱️</span> {t('app.timer')}
                         </button>
-                        {!isMobile && (
-                          <button
-                            onClick={handleMenuTimerClick}
-                            className={`px-3 py-2 text-xs font-bold text-left flex items-center gap-2 transition-colors ${theme.dropdown.itemInactive}`}
-                          >
-                            <span className={theme.iconType === 'table' ? "opacity-100" : ""}>⏱️</span> {t('app.timer')}
-                          </button>
-                        )}
                         <button
                           onClick={() => { setIsClearConfirmOpen(true); setIsMenuOpen(false); setIsSettingsOpen(false); }}
                           className={`px-3 py-2 text-xs font-bold text-left flex items-center gap-2 transition-colors ${theme.dropdown.itemInactive}`}
@@ -3739,7 +3831,7 @@ const CodeTiara = () => {
                                 backgroundColor: miniModeAdderId === category.id ? (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185') : 'transparent',
                                 borderColor: (CATEGORY_HUES[category.colorTheme] || '#FBCFE8')
                               } : { WebkitAppRegion: popoutCategoryId ? 'no-drag' : 'auto' }}
-                              className={`flex items-center justify-center transition-all duration-300 mr-2 shadow-sm active:scale-95 group
+                              className={`hidden sm:flex items-center justify-center transition-all duration-300 mr-2 shadow-sm active:scale-95 group
                               ${currentTheme === 'princess'
                                   ? 'w-6 h-6 rounded-[8px] border hover:shadow-md'
                                   : (currentTheme === 'excel' ? 'w-5 h-5 bg-[#F3F2F1] text-[#217346] hover:bg-[#217346] hover:text-white border border-[#D1D1D1] rounded-none' : 'w-5 h-5 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white rounded-md')}`}
@@ -3773,7 +3865,7 @@ const CodeTiara = () => {
                                  } : { WebkitAppRegion: 'no-drag' }}
                                  onMouseEnter={(e) => { if (currentTheme === 'princess') { e.currentTarget.style.backgroundColor = (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185'); e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'transparent'; } }}
                                  onMouseLeave={(e) => { if (currentTheme === 'princess') { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185'); e.currentTarget.style.borderColor = (CATEGORY_HUES[category.colorTheme] || '#FBCFE8'); } }}
-                                 className={`flex items-center justify-center transition-all duration-300 mr-2 shadow-sm active:scale-95
+                                 className={`hidden sm:flex items-center justify-center transition-all duration-300 mr-2 shadow-sm active:scale-95
                                  ${currentTheme === 'princess'
                                      ? 'w-6 h-6 rounded-[8px] border hover:shadow-md'
                                      : (currentTheme === 'excel' ? 'w-5 h-5 bg-[#F3F2F1] text-[#217346] hover:bg-[#217346] hover:text-white border border-[#D1D1D1] rounded-none' : 'w-5 h-5 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white rounded-md')}`}
@@ -3788,51 +3880,49 @@ const CodeTiara = () => {
                              )}
 
                              {/* ✨ Pop-out / Return Button */}
-                             {!isMobile && (
-                               <button
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   if (popoutCategoryId) {
-                                     // Return to main window
-                                     const updated = poppedOutCategories.filter(id => id !== category.id);
-                                     setPoppedOutCategories(updated);
-                                     localStorage.setItem('lumora_popped_out', JSON.stringify(updated));
-                                     sendIPC('close-popout');
-                                   } else {
-                                     // Pop out
-                                     const updated = [...poppedOutCategories, category.id];
-                                     setPoppedOutCategories(updated);
-                                     localStorage.setItem('lumora_popped_out', JSON.stringify(updated));
+                             <button
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 if (popoutCategoryId) {
+                                   // Return to main window
+                                   const updated = poppedOutCategories.filter(id => id !== category.id);
+                                   setPoppedOutCategories(updated);
+                                   localStorage.setItem('lumora_popped_out', JSON.stringify(updated));
+                                   sendIPC('close-popout');
+                                 } else {
+                                   // Pop out
+                                   const updated = [...poppedOutCategories, category.id];
+                                   setPoppedOutCategories(updated);
+                                   localStorage.setItem('lumora_popped_out', JSON.stringify(updated));
 
-                                     // Add to pinned categories by default if not already there
-                                     const isCurrentlyPinned = pinnedCategories.includes(Number(category.id)) || pinnedCategories.includes(String(category.id));
-                                     let newPinned = pinnedCategories;
-                                     if (!isCurrentlyPinned) {
-                                       newPinned = [...pinnedCategories, category.id];
-                                       setPinnedCategories(newPinned);
-                                       localStorage.setItem('lumora_pinned_categories', JSON.stringify(newPinned));
-                                     }
-
-                                     sendIPC('open-popout', { categoryId: category.id, isPinned: true });
+                                   // Add to pinned categories by default if not already there
+                                   const isCurrentlyPinned = pinnedCategories.includes(Number(category.id)) || pinnedCategories.includes(String(category.id));
+                                   let newPinned = pinnedCategories;
+                                   if (!isCurrentlyPinned) {
+                                     newPinned = [...pinnedCategories, category.id];
+                                     setPinnedCategories(newPinned);
+                                     localStorage.setItem('lumora_pinned_categories', JSON.stringify(newPinned));
                                    }
-                                 }}
-                                 style={currentTheme === 'princess' ? {
-                                   WebkitAppRegion: popoutCategoryId ? 'no-drag' : 'auto',
-                                   color: CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185',
-                                   backgroundColor: 'transparent',
-                                   borderColor: CATEGORY_HUES[category.colorTheme] || '#FBCFE8'
-                                 } : { WebkitAppRegion: popoutCategoryId ? 'no-drag' : 'auto' }}
-                                 onMouseEnter={(e) => { if (currentTheme === 'princess') { e.currentTarget.style.backgroundColor = (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185'); e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'transparent'; } }}
-                                 onMouseLeave={(e) => { if (currentTheme === 'princess') { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185'); e.currentTarget.style.borderColor = (CATEGORY_HUES[category.colorTheme] || '#FBCFE8'); } }}
-                                 className={`flex items-center justify-center transition-all duration-300 mr-2 shadow-sm active:scale-95
-                                 ${currentTheme === 'princess'
-                                     ? 'w-6 h-6 rounded-[8px] border hover:shadow-md group'
-                                     : (currentTheme === 'excel' ? 'w-5 h-5 bg-[#F3F2F1] text-[#217346] hover:bg-[#217346] hover:text-white border border-[#D1D1D1] rounded-none' : 'w-5 h-5 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white rounded-md')}`}
-                                 title={popoutCategoryId ? t('app.tooltip_return_main') : t('app.tooltip_popout')}
-                               >
-                                 {popoutCategoryId ? <X className="w-3.5 h-3.5" /> : <PanelTopOpen className="w-3.5 h-3.5" />}
-                               </button>
-                             )}
+
+                                   sendIPC('open-popout', { categoryId: category.id, isPinned: true });
+                                 }
+                               }}
+                               style={currentTheme === 'princess' ? {
+                                 WebkitAppRegion: popoutCategoryId ? 'no-drag' : 'auto',
+                                 color: CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185',
+                                 backgroundColor: 'transparent',
+                                 borderColor: CATEGORY_HUES[category.colorTheme] || '#FBCFE8'
+                               } : { WebkitAppRegion: popoutCategoryId ? 'no-drag' : 'auto' }}
+                               onMouseEnter={(e) => { if (currentTheme === 'princess') { e.currentTarget.style.backgroundColor = (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185'); e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'transparent'; } }}
+                               onMouseLeave={(e) => { if (currentTheme === 'princess') { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185'); e.currentTarget.style.borderColor = (CATEGORY_HUES[category.colorTheme] || '#FBCFE8'); } }}
+                               className={`hidden sm:flex items-center justify-center transition-all duration-300 mr-2 shadow-sm active:scale-95
+                               ${currentTheme === 'princess'
+                                   ? 'w-6 h-6 rounded-[8px] border hover:shadow-md group'
+                                   : (currentTheme === 'excel' ? 'w-5 h-5 bg-[#F3F2F1] text-[#217346] hover:bg-[#217346] hover:text-white border border-[#D1D1D1] rounded-none' : 'w-5 h-5 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white rounded-md')}`}
+                               title={popoutCategoryId ? t('app.tooltip_return_main') : t('app.tooltip_popout')}
+                             >
+                               {popoutCategoryId ? <X className="w-3.5 h-3.5" /> : <PanelTopOpen className="w-3.5 h-3.5" />}
+                             </button>
 
                             <span
                               style={currentTheme === 'princess' ? {
@@ -3886,6 +3976,7 @@ const CodeTiara = () => {
                                     {(provided, snapshot) => (
                                       <TaskItem
                                         triggerPopoutResize={triggerPopoutResize}
+                                        onLongPress={handleTaskLongPress}
                                         task={task}
                                         index={index}
                                         provided={provided}
@@ -4501,6 +4592,403 @@ const CodeTiara = () => {
             </div>
           );
         })()}
+
+        {/* ✨ Mobile UX: Global FAB (Floating Action Button) */}
+        <button
+          onClick={() => {
+            setIsAddSheetOpen(true);
+            setShowAdvancedAdd(false);
+          }}
+          className={`fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] sm:bottom-6 right-6 w-14 h-14 rounded-full shadow-xl flex items-center justify-center z-40 transition-transform active:scale-95 ${
+            currentTheme === 'princess' ? 'bg-[#FF6B81] text-white' :
+            currentTheme === 'excel' ? 'bg-[#107C41] text-white' :
+            'bg-[#007ACC] text-white'
+          }`}
+        >
+          <span className="text-3xl leading-none mb-1">+</span>
+        </button>
+
+        {/* ✨ Mobile UX: Add Task Bottom Sheet */}
+        {isAddSheetOpen && (
+          <div className="fixed inset-0 z-50 flex items-end">
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => setIsAddSheetOpen(false)} />
+            
+            {/* Sheet Content */}
+            <div className={`relative w-full rounded-t-2xl p-4 pb-12 sm:pb-4 shadow-2xl animate-in slide-in-from-bottom-full duration-300 ${
+              currentTheme === 'princess' ? 'bg-white' :
+              currentTheme === 'excel' ? 'bg-[#F3F2F1]' :
+              'bg-[#252526] border-t border-[#3E3E42]'
+            }`}>
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4" />
+              
+              <div className="flex flex-col gap-3 pb-2 max-h-[75vh] overflow-y-auto custom-scrollbar px-1">
+                {/* 1. Input & Add Button Row */}
+                <div className={`flex items-center p-1.5 rounded-3xl shadow-inner ${
+                  currentTheme === 'princess' ? 'bg-[#FFF0F5] border border-pink-100' :
+                  currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1]' :
+                  'bg-[#1E1E1E] border border-[#3E3E42]'
+                }`}>
+                  <input
+                    type="text"
+                    value={newTaskText}
+                    onChange={(e) => setNewTaskText(e.target.value)}
+                    placeholder={t('app.add_task_placeholder') || "할일 추가하기"}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        addTask(e);
+                        setIsAddSheetOpen(false);
+                      }
+                    }}
+                    className={`flex-1 p-2 ml-2 text-lg focus:outline-none font-bold bg-transparent ${
+                      currentTheme === 'princess' ? 'text-[#FF6B81] placeholder-pink-300' :
+                      currentTheme === 'excel' ? 'text-slate-800 placeholder-slate-400' :
+                      'text-white placeholder-slate-500'
+                    }`}
+                  />
+                  <button
+                    onClick={(e) => { addTask(e); setIsAddSheetOpen(false); }}
+                    className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-transform active:scale-95 ${
+                      currentTheme === 'princess' ? 'bg-[#FF6B81] text-white shadow-md' :
+                      currentTheme === 'excel' ? 'bg-[#107C41] text-white shadow-md' :
+                      'bg-[#007ACC] text-white shadow-md'
+                    }`}
+                  >
+                    <ArrowUp className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* 1.5. Selected Attributes Chips */}
+                {(taskDate || (taskHour && taskMinute) || taskRecurrence !== 'none' || selectedCategoryId || newTaskMemo) && (
+                  <div className="flex flex-wrap gap-2 px-2 mt-2">
+                    {taskDate && (
+                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm animate-in fade-in zoom-in-95 ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81] border border-pink-100' :
+                        currentTheme === 'excel' ? 'bg-[#E2F0D9] text-[#107C41] border border-[#C6E0B4]' :
+                        'bg-[#007ACC]/20 text-[#007ACC] border border-[#007ACC]/30'
+                      }`}>
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>{taskDate}</span>
+                        <button onClick={() => setTaskDate('')} className="ml-1 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    )}
+                    {taskHour && taskMinute && (
+                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm animate-in fade-in zoom-in-95 ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81] border border-pink-100' :
+                        currentTheme === 'excel' ? 'bg-[#E2F0D9] text-[#107C41] border border-[#C6E0B4]' :
+                        'bg-[#007ACC]/20 text-[#007ACC] border border-[#007ACC]/30'
+                      }`}>
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{taskAmpm} {taskHour}:{taskMinute}</span>
+                        <button onClick={() => { setTaskHour(''); setTaskMinute(''); }} className="ml-1 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    )}
+                    {taskRecurrence !== 'none' && (
+                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm animate-in fade-in zoom-in-95 ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81] border border-pink-100' :
+                        currentTheme === 'excel' ? 'bg-[#E2F0D9] text-[#107C41] border border-[#C6E0B4]' :
+                        'bg-[#007ACC]/20 text-[#007ACC] border border-[#007ACC]/30'
+                      }`}>
+                        <Repeat className="w-3.5 h-3.5" />
+                        <span>{getRecurrenceDisplayText(taskRecurrence, taskRecurrenceInterval, taskRecurrenceDays, taskDate)}</span>
+                        <button onClick={() => { setTaskRecurrence('none'); setTaskRecurrenceInterval(1); setTaskRecurrenceDays([]); }} className="ml-1 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    )}
+                    {selectedCategoryId && (
+                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm animate-in fade-in zoom-in-95 ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81] border border-pink-100' :
+                        currentTheme === 'excel' ? 'bg-[#E2F0D9] text-[#107C41] border border-[#C6E0B4]' :
+                        'bg-[#007ACC]/20 text-[#007ACC] border border-[#007ACC]/30'
+                      }`}>
+                        <Grid2X2 className="w-3.5 h-3.5" />
+                        <span>{categories.find(c => String(c.id) === String(selectedCategoryId))?.label || '카테고리'}</span>
+                        <button onClick={() => setSelectedCategoryId('')} className="ml-1 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    )}
+                    {newTaskMemo && (
+                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm animate-in fade-in zoom-in-95 ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81] border border-pink-100' :
+                        currentTheme === 'excel' ? 'bg-[#E2F0D9] text-[#107C41] border border-[#C6E0B4]' :
+                        'bg-[#007ACC]/20 text-[#007ACC] border border-[#007ACC]/30'
+                      }`}>
+                        <AlignLeft className="w-3.5 h-3.5" />
+                        <span className="max-w-[100px] truncate">{newTaskMemo}</span>
+                        <button onClick={() => setNewTaskMemo('')} className="ml-1 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 2. Icon Row */}
+                <div className="flex items-center gap-3 px-2 mt-1 mb-2">
+                  <button 
+                    onClick={() => setShowAdvancedAdd(prev => prev === 'memo' ? false : 'memo')} 
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${showAdvancedAdd === 'memo' ? (currentTheme === 'princess' ? 'bg-[#FF6B81] text-white shadow-md' : 'bg-[#007ACC] text-white shadow-md') : (currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' : 'bg-black/5 text-slate-500')} hover:brightness-95`}
+                  >
+                    <AlignLeft className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => setShowAdvancedAdd(prev => prev === 'date' ? false : 'date')} 
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${showAdvancedAdd === 'date' ? (currentTheme === 'princess' ? 'bg-[#FF6B81] text-white shadow-md' : 'bg-[#007ACC] text-white shadow-md') : (currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' : 'bg-black/5 text-slate-500')} hover:brightness-95`}
+                  >
+                    <Calendar className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => setShowAdvancedAdd(prev => prev === 'time' ? false : 'time')} 
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${showAdvancedAdd === 'time' ? (currentTheme === 'princess' ? 'bg-[#FF6B81] text-white shadow-md' : 'bg-[#007ACC] text-white shadow-md') : (currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' : 'bg-black/5 text-slate-500')} hover:brightness-95`}
+                  >
+                    <Clock className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => setShowAdvancedAdd(prev => prev === 'repeat' ? false : 'repeat')} 
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${showAdvancedAdd === 'repeat' ? (currentTheme === 'princess' ? 'bg-[#FF6B81] text-white shadow-md' : 'bg-[#007ACC] text-white shadow-md') : (currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' : 'bg-black/5 text-slate-500')} hover:brightness-95`}
+                  >
+                    <Repeat className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => setShowAdvancedAdd(prev => prev === 'category' ? false : 'category')} 
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${showAdvancedAdd === 'category' ? (currentTheme === 'princess' ? 'bg-[#FF6B81] text-white shadow-md' : 'bg-[#007ACC] text-white shadow-md') : (currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' : 'bg-black/5 text-slate-500')} hover:brightness-95`}
+                  >
+                    <Grid2X2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* 3. Dynamic Details Panel */}
+                {showAdvancedAdd === 'memo' && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                    <textarea
+                      value={newTaskMemo}
+                      onChange={(e) => setNewTaskMemo(e.target.value)}
+                      placeholder={t('app.memo_placeholder') || "상세 메모 (선택사항)"}
+                      rows={3}
+                      autoFocus
+                      className={`w-full p-4 text-base rounded-2xl focus:outline-none resize-none shadow-inner ${
+                        currentTheme === 'princess' ? 'bg-[#FFF0F5]/70 text-slate-600 placeholder-pink-300' :
+                        currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1] text-slate-700' :
+                        'bg-[#1E1E1E]/80 text-[#D4D4D4] border border-[#3E3E42]'
+                      }`}
+                    />
+                  </div>
+                )}
+
+                {showAdvancedAdd === 'category' && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-200 w-full relative">
+                    <CustomSelect
+                      value={selectedCategoryId}
+                      onChange={(val) => setSelectedCategoryId(val)}
+                      options={categories.map(c => ({ value: c.id, label: c.label }))}
+                      placeholder="카테고리 선택"
+                      currentTheme={currentTheme}
+                    />
+                  </div>
+                )}
+
+                {showAdvancedAdd === 'date' && (
+                  <div className={`animate-in fade-in slide-in-from-top-2 duration-200 p-3 rounded-2xl shadow-sm flex items-center justify-center ${
+                    currentTheme === 'princess' ? 'bg-[#FFF0F5] border border-pink-100' :
+                    currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1]' :
+                    'bg-[#2D2D30] border border-[#3E3E42]'
+                  }`}>
+                    <CustomDatePicker
+                      value={taskDate}
+                      onChange={(e) => setTaskDate(e.target.value)}
+                      placeholder="날짜 선택"
+                      inputClassName={`bg-transparent text-center focus:outline-none cursor-pointer w-32 py-1 text-base ${
+                        currentTheme === 'princess' ? 'text-[#FF6B81] font-bold placeholder-pink-300' :
+                        currentTheme === 'excel' ? 'text-slate-700' :
+                        'text-[#D4D4D4]'
+                      }`}
+                      currentTheme={currentTheme}
+                    />
+                  </div>
+                )}
+
+                {showAdvancedAdd === 'time' && (
+                  <div className={`animate-in fade-in slide-in-from-top-2 duration-200 p-4 rounded-2xl shadow-sm flex items-center justify-center gap-2 ${
+                    currentTheme === 'princess' ? 'bg-[#FFF0F5] border border-pink-100' :
+                    currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1]' :
+                    'bg-[#2D2D30] border border-[#3E3E42]'
+                  }`}>
+                    <input
+                      type="text"
+                      value={taskHour}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        if (val === '' || (parseInt(val) >= 1 && parseInt(val) <= 12)) setTaskHour(val);
+                      }}
+                      placeholder="12" maxLength={2}
+                      className={`w-12 text-center bg-transparent focus:outline-none text-xl ${
+                        currentTheme === 'princess' ? 'text-[#FF6B81] font-bold placeholder-pink-300' : 'text-inherit'
+                      }`}
+                    />
+                    <span className="text-slate-400 font-bold text-xl">:</span>
+                    <input
+                      type="text"
+                      value={taskMinute}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        if (val === '' || (parseInt(val) >= 0 && parseInt(val) <= 59)) setTaskMinute(val);
+                      }}
+                      placeholder="00" maxLength={2}
+                      className={`w-12 text-center bg-transparent focus:outline-none text-xl ${
+                        currentTheme === 'princess' ? 'text-[#FF6B81] font-bold placeholder-pink-300' : 'text-inherit'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTaskAmpm(prev => prev === '오전' ? '오후' : '오전')}
+                      className={`ml-4 px-4 py-1.5 text-sm font-bold rounded-lg transition-colors shadow-sm ${
+                        currentTheme === 'princess' ? (taskAmpm === '오전' ? 'bg-[#FF6B81] text-white' : 'bg-[#FF8DA1] text-white') :
+                        currentTheme === 'excel' ? (taskAmpm === '오전' ? 'bg-[#107C41] text-white' : 'bg-[#E2F0D9] text-[#107C41]') :
+                        'bg-slate-500 text-white'
+                      }`}
+                    >
+                      {taskAmpm}
+                    </button>
+                  </div>
+                )}
+
+                {showAdvancedAdd === 'repeat' && (
+                  <div className={`animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col gap-2 p-3 rounded-2xl shadow-sm relative ${
+                    currentTheme === 'princess' ? 'bg-[#FFF0F5] border border-pink-100' :
+                    currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1]' :
+                    'bg-[#2D2D30] border border-[#3E3E42]'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <Repeat className={`w-6 h-6 ml-2 ${currentTheme === 'princess' ? 'text-pink-300' : 'text-slate-400'}`} />
+                      <div className="flex-1">
+                        <CustomSelect
+                          value={taskRecurrence}
+                          onChange={(val) => setTaskRecurrence(val)}
+                          options={[
+                            { value: 'none', label: t('app.recurrence_none') },
+                            { value: 'daily', label: t('app.recurrence_daily') },
+                            { value: 'weekly', label: t('app.recurrence_weekly') },
+                            { value: 'monthly', label: t('app.recurrence_monthly') },
+                            { value: 'custom', label: t('app.recurrence_custom') }
+                          ]}
+                          placeholder={t('app.recurrence')}
+                          currentTheme={currentTheme}
+                        />
+                      </div>
+                    </div>
+                    {taskRecurrence === 'weekly' && (
+                      <div className="flex flex-col gap-1 px-2 pb-1.5 mt-1 border-t border-dashed border-gray-200/50 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className={`text-[11px] font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-slate-600' : 'text-slate-400')}`}>
+                          {t('app.recurrence_weekly_select')}
+                        </div>
+                        {renderMobileDayPicker(taskRecurrenceDays, setTaskRecurrenceDays, taskDate)}
+                      </div>
+                    )}
+                    {taskRecurrence === 'custom' && (
+                      <div className="flex items-center justify-end px-2 pb-1 mt-1 border-t border-dashed border-gray-200/50 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <span className={`text-xs mr-2 ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
+                          {t('app.recurrence_interval_prefix')}
+                        </span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={taskRecurrenceInterval}
+                          onChange={(e) => setTaskRecurrenceInterval(e.target.value)}
+                          className={`w-14 p-1 text-center outline-none bg-transparent text-lg border-b-2 ${
+                            currentTheme === 'princess' ? 'border-[#FF6B81] text-[#FF6B81] font-bold' :
+                            'border-slate-500 text-inherit'
+                          }`}
+                        />
+                        <span className={`text-xs ml-2 ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
+                          {t('app.recurrence_interval_suffix')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ✨ Mobile UX: Long Press Bottom Sheet */}
+        {longPressedTask && (
+          <div className="fixed inset-0 z-50 flex items-end">
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => setLongPressedTask(null)} />
+            
+            {/* Sheet Content */}
+            <div className={`relative w-full rounded-t-3xl p-5 pb-12 sm:pb-5 shadow-2xl animate-in slide-in-from-bottom-full duration-300 ${
+              currentTheme === 'princess' ? 'bg-white' :
+              currentTheme === 'excel' ? 'bg-white border-t-4 border-[#107C41]' :
+              'bg-[#1E1E1E] border-t border-[#3E3E42]'
+            }`}>
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-5" />
+              
+              {/* Selected Task Title */}
+              <div className={`text-center mb-6 px-4 truncate font-bold text-lg ${
+                currentTheme === 'princess' ? 'text-[#FF6B81]' :
+                currentTheme === 'excel' ? 'text-slate-800' :
+                'text-white'
+              }`}>
+                {longPressedTask.text}
+              </div>
+
+              <div className="grid grid-cols-4 gap-2 pb-6">
+                {/* Toggle Complete */}
+                <button
+                  onClick={() => { toggleTask(longPressedTask.id); setLongPressedTask(null); }}
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-2 transition-all active:scale-95 ${
+                    currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
+                    currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
+                    'bg-[#252526] text-[#D4D4D4]'
+                  }`}
+                >
+                  <CheckCircle2 className="w-6 h-6" />
+                  <span className="text-xs font-bold">{t('app.tooltip_complete') || '완료'}</span>
+                </button>
+
+                {/* Copy / Duplicate */}
+                <button
+                  onClick={() => { duplicateTask(longPressedTask); setLongPressedTask(null); }}
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-2 transition-all active:scale-95 ${
+                    currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
+                    currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
+                    'bg-[#252526] text-[#D4D4D4]'
+                  }`}
+                >
+                  <Copy className="w-6 h-6" />
+                  <span className="text-xs font-bold">{t('app.tooltip_duplicate') || '복사'}</span>
+                </button>
+
+                {/* Edit */}
+                <button
+                  onClick={() => { startEditing(longPressedTask); setLongPressedTask(null); }}
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-2 transition-all active:scale-95 ${
+                    currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
+                    currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
+                    'bg-[#252526] text-[#D4D4D4]'
+                  }`}
+                >
+                  <Edit2 className="w-6 h-6" />
+                  <span className="text-xs font-bold">{t('app.tooltip_edit') || '수정'}</span>
+                </button>
+
+                {/* Delete */}
+                <button
+                  onClick={() => { setConfirmingDeleteId(longPressedTask.id); setLongPressedTask(null); }}
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-2 transition-all active:scale-95 ${
+                    currentTheme === 'princess' ? 'bg-[#FFF0F5] text-red-500' :
+                    currentTheme === 'excel' ? 'bg-[#F3F2F1] text-red-600' :
+                    'bg-[#252526] text-red-400'
+                  }`}
+                >
+                  <Trash2 className="w-6 h-6" />
+                  <span className="text-xs font-bold">{t('app.tooltip_delete') || '삭제'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div >
     </div >
   );
