@@ -4921,6 +4921,235 @@ const CodeTiara = () => {
           </div>
         )}
 
+        {/* ✨ Mobile UX: Edit Task Bottom Sheet */}
+        {isMobile && editingTaskId && (
+          <div className="fixed inset-0 z-50 flex items-end">
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={cancelEditing} />
+            
+            {/* Sheet Content */}
+            <div className={`relative w-full rounded-t-2xl p-4 pb-12 sm:pb-4 shadow-2xl animate-in slide-in-from-bottom-full duration-300 max-h-[85vh] overflow-y-auto ${
+              currentTheme === 'princess' ? 'bg-white' :
+              currentTheme === 'excel' ? 'bg-[#F3F2F1]' :
+              'bg-[#252526] border-t border-[#3E3E42]'
+            }`}>
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4" />
+              
+              <div className={`text-center font-bold mb-4 text-base ${
+                currentTheme === 'princess' ? 'text-[#FF6B81]' :
+                currentTheme === 'excel' ? 'text-[#107C41]' :
+                'text-white'
+              }`}>
+                {t('app.tooltip_edit') || '할 일 수정'}
+              </div>
+
+              <div className="flex flex-col gap-3 pb-2 px-1">
+                {/* 1. Title Input Row */}
+                <div className={`flex items-center p-1.5 rounded-3xl shadow-inner ${
+                  currentTheme === 'princess' ? 'bg-[#FFF0F5] border border-pink-100' :
+                  currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1]' :
+                  'bg-[#1E1E1E] border border-[#3E3E42]'
+                }`}>
+                  <input
+                    type="text"
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    placeholder={t('app.edit_placeholder') || "할 일을 수정하세요..."}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        saveEditing(editingTaskId);
+                      }
+                    }}
+                    className={`flex-1 p-2 ml-2 text-lg focus:outline-none font-bold bg-transparent ${
+                      currentTheme === 'princess' ? 'text-[#FF6B81] placeholder-pink-300' :
+                      currentTheme === 'excel' ? 'text-slate-800 placeholder-slate-400' :
+                      'text-white placeholder-slate-500'
+                    }`}
+                  />
+                </div>
+
+                {/* 2. Memo Textarea */}
+                <div className="flex flex-col gap-1">
+                  <span className={`text-xs font-bold pl-1 ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-slate-600' : 'text-[#ABB2BF]')}`}>
+                    {t('app.memo_placeholder') || '상세 메모'}
+                  </span>
+                  <textarea
+                    value={editingMemo}
+                    onChange={(e) => setEditingMemo(e.target.value)}
+                    placeholder={t('app.memo_placeholder') || "상세 메모..."}
+                    rows={3}
+                    className={`w-full p-3 text-base rounded-2xl focus:outline-none resize-none shadow-inner ${
+                      currentTheme === 'princess' ? 'bg-[#FFF0F5]/70 text-slate-600 placeholder-pink-300' :
+                      currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1] text-slate-700' :
+                      'bg-[#1E1E1E]/80 text-[#D4D4D4] border border-[#3E3E42]'
+                    }`}
+                  />
+                </div>
+
+                {/* 3. Due Date Picker */}
+                <div className="flex flex-col gap-1">
+                  <span className={`text-xs font-bold pl-1 ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-slate-600' : 'text-[#ABB2BF]')}`}>
+                    {t('app.date') || '날짜'}
+                  </span>
+                  <div className={`p-3 rounded-2xl shadow-sm flex items-center justify-center ${
+                    currentTheme === 'princess' ? 'bg-[#FFF0F5] border border-pink-100' :
+                    currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1]' :
+                    'bg-[#2D2D30] border border-[#3E3E42]'
+                  }`}>
+                    <CustomDatePicker
+                      value={editingDate}
+                      onChange={(e) => setEditingDate(e.target.value)}
+                      placeholder={t('app.date') || "날짜 선택"}
+                      inputClassName={`bg-transparent text-center focus:outline-none cursor-pointer w-32 py-1 text-base ${
+                        currentTheme === 'princess' ? 'text-[#FF6B81] font-bold placeholder-pink-300' :
+                        currentTheme === 'excel' ? 'text-slate-700' :
+                        'text-[#D4D4D4]'
+                      }`}
+                      currentTheme={currentTheme}
+                    />
+                  </div>
+                </div>
+
+                {/* 4. Due Time Selection */}
+                <div className="flex flex-col gap-1">
+                  <span className={`text-xs font-bold pl-1 ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-slate-600' : 'text-[#ABB2BF]')}`}>
+                    ⏰ {t('app.tooltip_time') || '시간 설정'}
+                  </span>
+                  <div className={`p-4 rounded-2xl shadow-sm flex items-center justify-center gap-2 ${
+                    currentTheme === 'princess' ? 'bg-[#FFF0F5] border border-pink-100' :
+                    currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1]' :
+                    'bg-[#2D2D30] border border-[#3E3E42]'
+                  }`}>
+                    <input
+                      type="text"
+                      value={editingHour}
+                      onChange={(e) => setEditingHour(e.target.value.replace(/[^0-9]/g, ''))}
+                      placeholder="12"
+                      maxLength={2}
+                      className={`w-12 text-center text-lg bg-transparent focus:outline-none ${
+                        currentTheme === 'princess' ? 'text-[#FF6B81] font-bold placeholder-pink-300' :
+                        currentTheme === 'excel' ? 'text-slate-700' :
+                        'text-[#D4D4D4]'
+                      }`}
+                    />
+                    <span className={currentTheme === 'princess' ? 'text-[#FF6B81] font-bold' : (currentTheme === 'excel' ? 'text-slate-700' : 'text-[#D4D4D4]')}>:</span>
+                    <input
+                      type="text"
+                      value={editingMinute}
+                      onChange={(e) => setEditingMinute(e.target.value.replace(/[^0-9]/g, ''))}
+                      placeholder="00"
+                      maxLength={2}
+                      className={`w-12 text-center text-lg bg-transparent focus:outline-none ${
+                        currentTheme === 'princess' ? 'text-[#FF6B81] font-bold placeholder-pink-300' :
+                        currentTheme === 'excel' ? 'text-slate-700' :
+                        'text-[#D4D4D4]'
+                      }`}
+                    />
+                    <button
+                      onClick={() => setEditingAmpm(p => p === '오전' ? '오후' : '오전')}
+                      className={`ml-2 px-3 py-1.5 rounded-xl font-bold transition-all active:scale-95 ${
+                        currentTheme === 'princess' ? 'bg-white text-[#FF6B81] border border-pink-100 shadow-sm' :
+                        currentTheme === 'excel' ? 'bg-[#107C41] text-white' :
+                        'bg-[#007ACC] text-white'
+                      }`}
+                    >
+                      {editingAmpm === '오전' ? t('app.am') || '오전' : t('app.pm') || '오후'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 5. Recurrence Rule */}
+                <div className="flex flex-col gap-1">
+                  <span className={`text-xs font-bold pl-1 ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-slate-600' : 'text-[#ABB2BF]')}`}>
+                    🔁 {t('app.recurrence') || '반복 설정'}
+                  </span>
+                  <div className={`p-4 rounded-2xl shadow-sm flex flex-col gap-3 ${
+                    currentTheme === 'princess' ? 'bg-[#FFF0F5] border border-pink-100' :
+                    currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1]' :
+                    'bg-[#2D2D30] border border-[#3E3E42]'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={editingRecurrence}
+                        onChange={(e) => setEditingRecurrence(e.target.value)}
+                        className={`flex-1 outline-none bg-transparent cursor-pointer text-base ${
+                          currentTheme === 'princess' ? 'text-[#FF6B81] font-bold' :
+                          currentTheme === 'excel' ? 'bg-[#F3F2F1] border border-[#D1D1D1] p-1.5 text-slate-700' :
+                          'text-[#ABB2BF]'
+                        }`}
+                        title={t('app.recurrence')}
+                      >
+                        <option value="none" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_none') || '안함'}</option>
+                        <option value="daily" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_daily') || '매일'}</option>
+                        <option value="weekly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_weekly') || '매주'}</option>
+                        <option value="monthly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_monthly') || '매월'}</option>
+                        <option value="custom" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_custom') || 'N일마다'}</option>
+                      </select>
+                    </div>
+
+                    {editingRecurrence === 'weekly' && renderDayPicker(editingRecurrenceDays, setEditingRecurrenceDays, editingDate)}
+                    
+                    {editingRecurrence === 'monthly' && (
+                      <div className={`text-xs ${currentTheme === 'princess' ? 'text-[#FF6B81] font-bold' : 'text-slate-500'}`}>
+                        {getRecurrenceHint(editingDate, editingRecurrence)}
+                      </div>
+                    )}
+
+                    {editingRecurrence === 'custom' && (
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
+                          {t('app.recurrence_interval_prefix') || '반복 주기: '}
+                        </span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={editingRecurrenceInterval}
+                          onChange={(e) => setEditingRecurrenceInterval(e.target.value)}
+                          className={`w-12 text-center outline-none bg-transparent text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                            currentTheme === 'princess' ? 'border-b border-[#FF6B81] text-[#FF6B81] font-bold' :
+                            currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1] h-8' :
+                            'border-b border-[#3E3E42] text-[#D19A66]'
+                          }`}
+                        />
+                        <span className={`text-xs ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
+                          {t('app.recurrence_interval_suffix') || '일마다'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 6. Save / Cancel Buttons */}
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={cancelEditing}
+                    className={`flex-1 p-4 rounded-2xl text-center font-bold transition-all active:scale-95 ${
+                      currentTheme === 'princess' ? 'bg-pink-100 text-[#FF6B81]' :
+                      currentTheme === 'excel' ? 'bg-slate-200 text-slate-700' :
+                      'bg-[#323233] text-[#D4D4D4]'
+                    }`}
+                  >
+                    {t('app.cancel') || '취소'}
+                  </button>
+                  <button
+                    onClick={() => saveEditing(editingTaskId)}
+                    className={`flex-1 p-4 rounded-2xl text-center font-bold transition-all active:scale-95 ${
+                      currentTheme === 'princess' ? 'bg-[#FF6B81] text-white shadow-md' :
+                      currentTheme === 'excel' ? 'bg-[#107C41] text-white shadow-md' :
+                      'bg-[#007ACC] text-white shadow-md'
+                    }`}
+                  >
+                    {t('app.save') || '저장'}
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
         {/* ✨ Mobile UX: Long Press Bottom Sheet */}
         {longPressedTask && (
           <div className="fixed inset-0 z-50 flex items-end">

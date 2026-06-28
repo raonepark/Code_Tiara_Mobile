@@ -362,7 +362,7 @@ const TaskItem = memo(({
                 )}
 
                 <div className="flex-1 flex flex-col min-w-0 text-left">
-                    {editingTaskId === task.id ? (
+                    {!isMobile && editingTaskId === task.id ? (
                         <div ref={editFormRef} className={`w-full relative transition-all duration-300 z-10 ${theme.task.editContainer}`} onClick={e => e.stopPropagation()}>
 
                             <div className={`${theme.task.editInputBgWrapper}`}>
