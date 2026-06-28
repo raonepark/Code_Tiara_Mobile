@@ -110,6 +110,7 @@
     "task_grocery": "장보기",
     "move_category": "이동",
     "cancel": "취소",
+    "back": "뒤로 가기",
     "save": "저장",
     "save_hint": "Ctrl+Enter로 저장 / Enter로 줄바꿈",
     "add_task_placeholder": "할일 추가하기",

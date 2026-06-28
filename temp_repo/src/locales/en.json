@@ -110,6 +110,7 @@
     "task_grocery": "Buy groceries",
     "move_category": "Move",
     "cancel": "Cancel",
+    "back": "Back",
     "save": "Save",
     "save_hint": "Ctrl+Enter to save / Enter for new line",
     "edit_placeholder": "Edit task...",
