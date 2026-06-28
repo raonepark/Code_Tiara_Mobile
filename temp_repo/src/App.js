@@ -2762,8 +2762,8 @@ const CodeTiara = () => {
           }
         ` : ''}
 
-        /* 특정 폰트(동글, 개구, 나눔손글씨 펜, 감자꽃)에 대한 전체 Tailwind font-size 스케일 보정 (개별 테이퍼링 적용) */
-        ${( ['Dongle', 'Gaegu', 'Nanum Pen Script', 'Gamja Flower'].includes(fontFamily) || (fontFamily === 'default' && currentTheme === 'princess') ) ? (() => {
+        /* 특정 폰트(동글, 개구, 나눔손글씨 펜, 감자꽃) 또는 모바일 화면 전체에 대한 Tailwind font-size 스케일 보정 (개별 테이퍼링 적용) */
+        ${( ['Dongle', 'Gaegu', 'Nanum Pen Script', 'Gamja Flower'].includes(fontFamily) || (fontFamily === 'default' && currentTheme === 'princess') || isMobile ) ? (() => {
           const actualFont = fontFamily === 'default' && currentTheme === 'princess' ? 'Gamja Flower' : fontFamily;
           const getScaleForClass = (cls) => getFontScaleMultiplier(actualFont, currentTheme, cls);
           return `
@@ -3404,6 +3404,7 @@ const CodeTiara = () => {
               closeSettings();
             }}
             onDeleteAccount={handleDeleteAccount}
+            isMobile={isMobile}
           />
 
 

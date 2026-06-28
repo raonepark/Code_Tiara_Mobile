@@ -30,7 +30,7 @@ const SettingsPanel = ({
     finalDeleteCategory, categoryToDelete, setCategoryToDelete,
     confirmDeleteCategory, exportData, triggerImport, fileInputRef, importData,
     handleResetRequest, isResetConfirming, getIcon, openOnboardingGuide,
-    user, onSignOut, onLoginClick, onDeleteAccount
+    user, onSignOut, onLoginClick, onDeleteAccount, isMobile
 }) => {
     const { t, i18n } = useTranslation();
     const [isThemeSettingsExpanded, setIsThemeSettingsExpanded] = useState(false);
@@ -153,43 +153,45 @@ const SettingsPanel = ({
                     </div>
 
                     {/* Font Size */}
-                    <div className={`pt-3 border-t ${theme.divider} mb-4`}>
-                        <div className="flex justify-between items-center mb-2 ml-1">
-                            <span className={`text-xs font-bold ${theme.settings.sectionTitle}`}>{t('settings.textSize')}</span>
-                            <span className={`text-xs font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-[#217346]' : 'text-[#61AFEF]')}`}>{fontSize}px</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <input
-                                type="range"
-                                min="10"
-                                max="28"
-                                value={fontSize}
-                                onChange={(e) => setFontSize(Number(e.target.value))}
-                                className={`flex-1 h-1.5 rounded-lg appearance-none cursor-pointer ${
-                                    currentTheme === 'princess' ? 'bg-[#FFD1DC] accent-[#FF6B81]' : 
-                                    currentTheme === 'excel' ? 'bg-[#E1E1E1] accent-[#217346]' : 
-                                    'bg-[#3E3E42] accent-[#61AFEF]'
-                                }`}
-                            />
-                        </div>
-                        {/* Quick Presets */}
-                        <div className="flex gap-1.5 mt-2 justify-between">
-                            {[12, 14, 16, 18, 22].map((size) => (
-                                <button
-                                    key={size}
-                                    type="button"
-                                    onClick={() => setFontSize(size)}
-                                    className={`flex-1 py-1 text-[10px] transition-all font-bold rounded-[8px] border focus:outline-none ${
-                                        fontSize === size
-                                            ? (currentTheme === 'princess' ? 'bg-[#FF6B81] border-[#FF6B81] text-white' : (currentTheme === 'excel' ? 'bg-[#217346] border-[#217346] text-white' : 'bg-[#61AFEF] border-[#61AFEF] text-slate-900'))
-                                            : (currentTheme === 'princess' ? 'bg-white border-[#FFD1DC] text-[#FFB6C1] hover:bg-[#FFF0F5]' : (currentTheme === 'excel' ? 'bg-[#F3F2F1] border-[#D1D1D1] text-slate-600 hover:bg-[#E1E1E1]' : 'bg-[#2D2D30] border-transparent text-slate-400 hover:text-white'))
+                    {!isMobile && (
+                        <div className={`pt-3 border-t ${theme.divider} mb-4`}>
+                            <div className="flex justify-between items-center mb-2 ml-1">
+                                <span className={`text-xs font-bold ${theme.settings.sectionTitle}`}>{t('settings.textSize')}</span>
+                                <span className={`text-xs font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-[#217346]' : 'text-[#61AFEF]')}`}>{fontSize}px</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="range"
+                                    min="10"
+                                    max="28"
+                                    value={fontSize}
+                                    onChange={(e) => setFontSize(Number(e.target.value))}
+                                    className={`flex-1 h-1.5 rounded-lg appearance-none cursor-pointer ${
+                                        currentTheme === 'princess' ? 'bg-[#FFD1DC] accent-[#FF6B81]' : 
+                                        currentTheme === 'excel' ? 'bg-[#E1E1E1] accent-[#217346]' : 
+                                        'bg-[#3E3E42] accent-[#61AFEF]'
                                     }`}
-                                >
-                                    {size === 12 ? t('settings.sizeSmall') : size === 14 ? t('settings.sizeDefault') : size === 16 ? t('settings.sizeMedium') : size === 18 ? t('settings.sizeLarge') : t('settings.sizeXLarge')}
-                                </button>
-                            ))}
+                                />
+                            </div>
+                            {/* Quick Presets */}
+                            <div className="flex gap-1.5 mt-2 justify-between">
+                                {[12, 14, 16, 18, 22].map((size) => (
+                                    <button
+                                        key={size}
+                                        type="button"
+                                        onClick={() => setFontSize(size)}
+                                        className={`flex-1 py-1 text-[10px] transition-all font-bold rounded-[8px] border focus:outline-none ${
+                                            fontSize === size
+                                                ? (currentTheme === 'princess' ? 'bg-[#FF6B81] border-[#FF6B81] text-white' : (currentTheme === 'excel' ? 'bg-[#217346] border-[#217346] text-white' : 'bg-[#61AFEF] border-[#61AFEF] text-slate-900'))
+                                                : (currentTheme === 'princess' ? 'bg-white border-[#FFD1DC] text-[#FFB6C1] hover:bg-[#FFF0F5]' : (currentTheme === 'excel' ? 'bg-[#F3F2F1] border-[#D1D1D1] text-slate-600 hover:bg-[#E1E1E1]' : 'bg-[#2D2D30] border-transparent text-slate-400 hover:text-white'))
+                                        }`}
+                                    >
+                                        {size === 12 ? t('settings.sizeSmall') : size === 14 ? t('settings.sizeDefault') : size === 16 ? t('settings.sizeMedium') : size === 18 ? t('settings.sizeLarge') : t('settings.sizeXLarge')}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Font Family */}
                     <div className={`pt-3 border-t ${theme.divider}`}>
