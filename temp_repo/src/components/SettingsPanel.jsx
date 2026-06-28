@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Settings, ChevronDown, GripVertical, Check, X, Trash2, Plus, RotateCcw, BookOpen } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -23,7 +23,8 @@ const SettingsPanel = ({
 }) => {
     const { t, i18n } = useTranslation();
     const [isThemeSettingsExpanded, setIsThemeSettingsExpanded] = useState(false);
-    const [isFontDropdownOpen, setIsFontDropdownOpen] = useState(false);
+    const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
+    const langDropdownRef = useRef(null);
     const [isAutoLaunch, setIsAutoLaunch] = useState(false);
 
     useEffect(() => {
@@ -44,14 +45,14 @@ const SettingsPanel = ({
 
 
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (isFontDropdownOpen && !event.target.closest('.font-select-dropdown')) {
-                setIsFontDropdownOpen(false);
+        const handleClickOutsideLang = (e) => {
+            if (isLangDropdownOpen && langDropdownRef.current && !langDropdownRef.current.contains(e.target)) {
+                setIsLangDropdownOpen(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isFontDropdownOpen]);
+        document.addEventListener('mousedown', handleClickOutsideLang);
+        return () => document.removeEventListener('mousedown', handleClickOutsideLang);
+    }, [isLangDropdownOpen]);
 
     if (!isOpen) return null;
 
@@ -325,16 +326,66 @@ const SettingsPanel = ({
                     <div className={theme.settings.header}>
                         {t('settings.language')}
                     </div>
-                    <div className="relative font-select-dropdown">
-                        <select
-                            value={i18n.language?.startsWith('en') ? 'en' : 'ko'}
-                            onChange={(e) => i18n.changeLanguage(e.target.value)}
-                            className={`w-full ${theme.settings.input} text-sm transition-all focus:outline-none py-2 px-3 appearance-none cursor-pointer`}
+                    <div className="relative font-select-dropdown" ref={langDropdownRef}>
+                        <button
+                            type="button"
+                            onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                            className={`w-full ${theme.settings.input} text-sm transition-all focus:outline-none flex justify-between items-center py-2 px-3 border border-pink-200/50 shadow-sm`}
                         >
-                            <option value="ko">{t('settings.langKo')} (Korean)</option>
-                            <option value="en">{t('settings.langEn')} (English)</option>
-                        </select>
-                        <ChevronDown className={`absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-[#217346]' : 'text-slate-400')}`} />
+                            <span>
+                                {i18n.language?.startsWith('en') ? `${t('settings.langEn')} (English)` : `${t('settings.langKo')} (Korean)`}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isLangDropdownOpen ? 'rotate-180' : ''} ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-[#217346]' : 'text-slate-400')}`} />
+                        </button>
+                        
+                        {isLangDropdownOpen && (
+                            <div 
+                                className={`absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-50 shadow-xl border custom-scrollbar transition-all animate-in fade-in slide-in-from-top-2 duration-200 ${
+                                    currentTheme === 'princess' 
+                                        ? 'bg-white/95 backdrop-blur-md border-[#FFD1DC] rounded-[16px] text-slate-800' 
+                                        : (currentTheme === 'excel' 
+                                            ? 'bg-[#F3F2F1] border-[#D1D1D1] text-slate-800' 
+                                            : 'bg-[#252526] border-[#3E3E42] text-[#D4D4D4] rounded-lg')
+                                }`}
+                            >
+                                {[
+                                    { value: 'ko', label: `${t('settings.langKo')} (Korean)` },
+                                    { value: 'en', label: `${t('settings.langEn')} (English)` }
+                                ].map((opt) => {
+                                    const isSelected = (opt.value === 'en' && i18n.language?.startsWith('en')) || (opt.value === 'ko' && !i18n.language?.startsWith('en'));
+                                    let hoverClass = '';
+                                    if (currentTheme === 'princess') {
+                                        hoverClass = isSelected ? 'bg-[#FFE4E1] text-[#FF6B81] font-bold' : 'hover:bg-[#FFF0F5] text-slate-700';
+                                    } else if (currentTheme === 'excel') {
+                                        hoverClass = isSelected ? 'bg-[#E1DFDD] text-[#217346] font-bold' : 'hover:bg-[#EDEBE9] text-slate-700';
+                                    } else {
+                                        hoverClass = isSelected ? 'bg-[#007ACC] text-white font-bold' : 'hover:bg-[#2D2D30] text-[#ABB2BF]';
+                                    }
+
+                                    return (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => {
+                                                i18n.changeLanguage(opt.value);
+                                                setIsLangDropdownOpen(false);
+                                            }}
+                                            className={`w-full text-left py-2 px-3 text-xs sm:text-sm font-medium transition-colors flex items-center justify-between border-b last:border-b-0 ${
+                                                currentTheme === 'princess' ? 'border-[#FFF0F5]' : (currentTheme === 'excel' ? 'border-[#E1E1E1]' : 'border-[#2D2D30]')
+                                            } ${hoverClass}`}
+                                        >
+                                            <span>{opt.label}</span>
+                                            {isSelected && (
+                                                <Check className={`w-3.5 h-3.5 ${
+                                                    currentTheme === 'princess' ? 'text-[#FF6B81]' : 
+                                                    (currentTheme === 'excel' ? 'text-[#107C41]' : 'text-[#61AFEF]')
+                                                }`} />
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
