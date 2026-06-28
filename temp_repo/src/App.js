@@ -1307,7 +1307,7 @@ const CodeTiara = () => {
         const newNotifs = tasksToAlert.map(t => ({
           id: Date.now() + Math.random(),
           title: '알림',
-          message: `"${t.text}" 마감 시간!`,
+          message: `"${t.text.startsWith('app.task_') ? t(t.text) : t.text}" 마감 시간!`,
           time: formatTimeDisplay(currentTimeStr),
           read: false,
           taskId: t.id // ✨ Link notification to task
@@ -1318,7 +1318,7 @@ const CodeTiara = () => {
         tasksToAlert.forEach(t => {
           if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
             new Notification('Code Tiara', {
-              body: `"${t.text}" 마감 시간입니다!`,
+              body: `"${t.text.startsWith('app.task_') ? t(t.text) : t.text}" 마감 시간입니다!`,
               silent: false
             });
           }
@@ -1858,7 +1858,7 @@ const CodeTiara = () => {
     const newTask = {
       ...task,
       id: Date.now() + Math.random(),
-      text: `${task.text} ${t('app.copy_suffix')}`,
+      text: `${task.text.startsWith('app.task_') ? t(task.text) : task.text} ${t('app.copy_suffix')}`,
       alerted: false
     };
 
@@ -1893,7 +1893,7 @@ const CodeTiara = () => {
   // --- Actions: Edit Task ---
   const startEditing = (task) => {
     setEditingTaskId(task.id);
-    setEditingText(task.text);
+    setEditingText(task.text.startsWith('app.task_') ? t(task.text) : task.text);
     setEditingMemo(task.memo || ''); // ✨ 메모 로드
     setEditingDate(task.dueDate || ''); // ✨ 날짜 로드
     setEditingRecurrence(task.recurrence || 'none');
@@ -4301,7 +4301,7 @@ const CodeTiara = () => {
                     {/* Content */}
                     <p className={`text-sm mb-8 break-words whitespace-normal leading-relaxed 
                       ${currentTheme === 'princess' ? 'text-slate-500' : (currentTheme === 'excel' ? 'text-slate-800 px-2' : 'text-[#ABB2BF]')}`}>
-                      {t('app.confirm_delete_task_msg_1')}<span className={`font-bold inline-block max-w-full truncate align-bottom ${currentTheme === 'princess' ? 'text-[#FF6B81] bg-[#FFF0F5] px-2 py-0.5 rounded-lg' : (currentTheme === 'excel' ? 'text-[#107C41] border-b border-[#107C41]' : 'text-[#E06C75]')}`}>'{tasks.find(t => t.id === taskToDelete)?.text}'</span>{t('app.confirm_delete_task_msg_2')}
+                      {t('app.confirm_delete_task_msg_1')}<span className={`font-bold inline-block max-w-full truncate align-bottom ${currentTheme === 'princess' ? 'text-[#FF6B81] bg-[#FFF0F5] px-2 py-0.5 rounded-lg' : (currentTheme === 'excel' ? 'text-[#107C41] border-b border-[#107C41]' : 'text-[#E06C75]')}`}>'{(() => { const tObj = tasks.find(t => t.id === taskToDelete); return tObj ? (tObj.text.startsWith('app.task_') ? t(tObj.text) : tObj.text) : ''; })()}'</span>{t('app.confirm_delete_task_msg_2')}
                     </p>
 
                     {/* Actions */}
@@ -4991,7 +4991,7 @@ const CodeTiara = () => {
                     currentTheme === 'excel' ? 'text-slate-800' :
                     'text-white'
                   }`}>
-                    {longPressedTask.text}
+                    {longPressedTask.text.startsWith('app.task_') ? t(longPressedTask.text) : longPressedTask.text}
                   </div>
 
                   <div className="grid grid-cols-5 gap-2 pb-6">

@@ -518,7 +518,7 @@ const TaskItem = memo(({
                                     return { fontSize: `${Math.round(base * mult)}px` };
                                 })() : {}}
                             >
-                                {task.text}
+                                {task.text.startsWith('app.task_') ? t(task.text) : task.text}
                             </span>
                             {/* 마감 시간 & 반복 정보 */}
                             {(task.dueTime || task.dueDate || (task.recurrence && task.recurrence !== 'none')) && (
