@@ -3983,7 +3983,7 @@ const CodeTiara = () => {
                                 )}
 
                                 {categoryTasks.map((task, index) => (
-                                  <Draggable key={task.id} draggableId={String(task.id)} index={index}>
+                                  <Draggable key={task.id} draggableId={String(task.id)} index={index} isDragDisabled={isMobile}>
                                     {(provided, snapshot) => (
                                       <TaskItem
                                         triggerPopoutResize={triggerPopoutResize}

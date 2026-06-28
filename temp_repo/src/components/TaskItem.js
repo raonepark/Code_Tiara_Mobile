@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Trash2, X, Check, Edit2, Clock, CheckCircle2, Circle, Copy, Repeat, ChevronUp, ChevronDown, FileText
@@ -112,7 +112,7 @@ const TaskItem = memo(({
     fontSize, fontFamily,
     getTextSizeClass, getSubTextSizeClass, formatTimeDisplay,
     category, borderIdle, borderHover, CATEGORY_ICON_HUES,
-    toggleTask,
+    toggleTask, onLongPress,
     editingTaskId, startEditing, saveEditing, cancelEditing,
     editingText, setEditingText,
     editingDate, setEditingDate,
@@ -137,10 +137,21 @@ const TaskItem = memo(({
     const [touchStart, setTouchStart] = useState(null);
     const [swipeOffset, setSwipeOffset] = useState(0);
     const [isSwipeOpen, setIsSwipeOpen] = useState(false);
+    const longPressTimerRef = useRef(null);
 
     const handleTouchStart = (e) => {
         if (!isMobile || editingTaskId === task.id) return;
         setTouchStart(e.targetTouches[0].clientX);
+
+        // Custom Touch Long Press Detection
+        if (onLongPress) {
+            longPressTimerRef.current = setTimeout(() => {
+                onLongPress(task);
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(50);
+                }
+            }, 600); // 600ms long press threshold
+        }
     };
 
     const handleTouchMove = (e) => {
@@ -153,9 +164,23 @@ const TaskItem = memo(({
         } else {
             setSwipeOffset(0);
         }
+
+        // Cancel long press if user swipes/moves more than 10px
+        if (Math.abs(diffX) > 10) {
+            if (longPressTimerRef.current) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+            }
+        }
     };
 
     const handleTouchEnd = () => {
+        // Cancel long press if touch ended before timeout
+        if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+        }
+
         if (!isMobile || editingTaskId === task.id) return;
         if (swipeOffset > 50) {
             setSwipeOffset(70);
