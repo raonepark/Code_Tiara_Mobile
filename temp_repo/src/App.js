@@ -3597,71 +3597,73 @@ const CodeTiara = () => {
                     </div>
                   ) : (
                     /* ✨ Default Style */
-                    <>
-                      {/* 1. Statistics Row (Date Left, Count Right) */}
-                      <div className={`flex justify-between ${isMiniMode ? 'items-center' : 'items-end mb-1'}`}>
-                        {/* Left: Date Navigation Filter */}
-                        {!isMobile && (
-                          <div className={`flex items-center gap-0.5 text-[11px] font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
-                            <CustomDatePicker
-                              value={filterDate}
-                              onChange={(e) => {
-                                if (e.target.value) {
-                                  setFilterDate(e.target.value);
-                                  setFilterMode('daily');
-                                }
-                              }}
-                              currentTheme={currentTheme}
-                              customTrigger={<Calendar className="w-3 h-3 hover:scale-110 cursor-pointer transition-transform" />}
-                            />
-                            <select
-                              value={filterMode}
-                              onChange={(e) => {
-                                setFilterMode(e.target.value);
-                                setFilterDate(getLocalDateString());
-                              }}
-                              className={`outline-none cursor-pointer text-[10px] sm:text-[11px] ${currentTheme === 'developer' ? 'bg-[#1E1E1E] text-[#ABB2BF]' : 'bg-transparent'}`}
-                              title={t('app.tooltip_view_mode')}
-                            >
-                              <option value="all" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_all')}</option>
-                              <option value="daily" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_daily')}</option>
-                              <option value="weekly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_weekly')}</option>
-                              <option value="monthly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_monthly')}</option>
-                            </select>
-                            
-                            {filterMode !== 'all' && (
-                              <div className="flex items-center gap-0.5 ml-0.5">
-                                <button onClick={() => shiftFilterDate('prev')} className={`p-0.5 rounded transition-colors hover:scale-110 active:scale-95 ${currentTheme === 'princess' ? 'hover:bg-[#FFC0CB]/30' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}><ChevronLeft className="w-3 h-3" /></button>
-                                <span className="min-w-[40px] text-center text-[10px] sm:text-[11px]">{getFilterDisplayString()}</span>
-                                <button onClick={() => shiftFilterDate('next')} className={`p-0.5 rounded transition-colors hover:scale-110 active:scale-95 ${currentTheme === 'princess' ? 'hover:bg-[#FFC0CB]/30' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}><ChevronRight className="w-3 h-3" /></button>
-                              </div>
-                            )}
+                    !isMobile && (
+                      <>
+                        {/* 1. Statistics Row (Date Left, Count Right) */}
+                        <div className={`flex justify-between ${isMiniMode ? 'items-center' : 'items-end mb-1'}`}>
+                          {/* Left: Date Navigation Filter */}
+                          {!isMobile && (
+                            <div className={`flex items-center gap-0.5 text-[11px] font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
+                              <CustomDatePicker
+                                value={filterDate}
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    setFilterDate(e.target.value);
+                                    setFilterMode('daily');
+                                  }
+                                }}
+                                currentTheme={currentTheme}
+                                customTrigger={<Calendar className="w-3 h-3 hover:scale-110 cursor-pointer transition-transform" />}
+                              />
+                              <select
+                                value={filterMode}
+                                onChange={(e) => {
+                                  setFilterMode(e.target.value);
+                                  setFilterDate(getLocalDateString());
+                                }}
+                                className={`outline-none cursor-pointer text-[10px] sm:text-[11px] ${currentTheme === 'developer' ? 'bg-[#1E1E1E] text-[#ABB2BF]' : 'bg-transparent'}`}
+                                title={t('app.tooltip_view_mode')}
+                              >
+                                <option value="all" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_all')}</option>
+                                <option value="daily" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_daily')}</option>
+                                <option value="weekly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_weekly')}</option>
+                                <option value="monthly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_monthly')}</option>
+                              </select>
+                              
+                              {filterMode !== 'all' && (
+                                <div className="flex items-center gap-0.5 ml-0.5">
+                                  <button onClick={() => shiftFilterDate('prev')} className={`p-0.5 rounded transition-colors hover:scale-110 active:scale-95 ${currentTheme === 'princess' ? 'hover:bg-[#FFC0CB]/30' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}><ChevronLeft className="w-3 h-3" /></button>
+                                  <span className="min-w-[40px] text-center text-[10px] sm:text-[11px]">{getFilterDisplayString()}</span>
+                                  <button onClick={() => shiftFilterDate('next')} className={`p-0.5 rounded transition-colors hover:scale-110 active:scale-95 ${currentTheme === 'princess' ? 'hover:bg-[#FFC0CB]/30' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}><ChevronRight className="w-3 h-3" /></button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Right: Task Count */}
+                          <span className={`text-[10px] sm:text-[11px] font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
+                            {completedTasks}/{totalTasks} {!isMiniMode && t('app.completed')}
+                          </span>
+                        </div>
+
+                        {/* 2. Progress Bar */}
+                        {!isMiniMode && (
+                          <div className="relative">
+                            <div className={`overflow-hidden h-1.5 mb-0 text-[10px] flex rounded-full ${currentTheme === 'princess' ? 'bg-white border border-[#FFC0CB]' : 'bg-slate-800 border border-slate-700'}`}>
+                              <div
+                                style={{ width: `${progressPercentage}%` }}
+                                className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-700 ease-out 
+                                  ${currentTheme === 'princess'
+                                    ? (progressPercentage === 100
+                                      ? 'bg-gradient-to-r from-[#FDC830] to-[#F37335] animate-pulse shadow-[0_0_10px_#FDC830]'
+                                      : 'bg-gradient-to-r from-[#FF9A9E] via-[#FECFEF] to-[#FF6B81]')
+                                    : getOverallProgressColor()}`}
+                              ></div>
+                            </div>
                           </div>
                         )}
-
-                        {/* Right: Task Count */}
-                        <span className={`text-[10px] sm:text-[11px] font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : 'text-slate-500'}`}>
-                          {completedTasks}/{totalTasks} {!isMiniMode && t('app.completed')}
-                        </span>
-                      </div>
-
-                      {/* 2. Progress Bar */}
-                      {!isMiniMode && (
-                        <div className="relative">
-                          <div className={`overflow-hidden h-1.5 mb-0 text-[10px] flex rounded-full ${currentTheme === 'princess' ? 'bg-white border border-[#FFC0CB]' : 'bg-slate-800 border border-slate-700'}`}>
-                            <div
-                              style={{ width: `${progressPercentage}%` }}
-                              className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-700 ease-out 
-                                ${currentTheme === 'princess'
-                                  ? (progressPercentage === 100
-                                    ? 'bg-gradient-to-r from-[#FDC830] to-[#F37335] animate-pulse shadow-[0_0_10px_#FDC830]'
-                                    : 'bg-gradient-to-r from-[#FF9A9E] via-[#FECFEF] to-[#FF6B81]')
-                                  : getOverallProgressColor()}`}
-                            ></div>
-                          </div>
-                        </div>
-                      )}
-                    </>
+                      </>
+                    )
                   )
                 )}
               </div>
