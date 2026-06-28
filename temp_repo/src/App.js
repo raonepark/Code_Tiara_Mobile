@@ -2967,7 +2967,7 @@ const CodeTiara = () => {
 
         {/* Terminal Header Bar */}
         {!popoutCategoryId && (
-        <div className={`${theme.header.bg} px-3 h-10 flex items-center justify-between ${theme.header.border} border-b relative z-[999] shrink-0 select-none`} style={{ WebkitAppRegion: 'drag', transform: 'translateZ(0)' }}>
+        <div className={`${theme.header.bg} px-3 h-[46px] flex items-center justify-between ${theme.header.border} border-b relative z-[999] shrink-0 select-none`} style={{ WebkitAppRegion: 'drag', transform: 'translateZ(0)' }}>
           {/* Left: Window Controls & Date Filter */}
           <div className="flex items-center gap-2 z-10 w-1/3 justify-start" style={{ WebkitAppRegion: 'no-drag' }}>
             {!isMobile && (
@@ -3007,7 +3007,11 @@ const CodeTiara = () => {
                   }
                 }}
                 currentTheme={currentTheme}
-                customTrigger={<Calendar className={`w-3.5 h-3.5 hover:scale-110 cursor-pointer transition-transform ${currentTheme === 'excel' ? 'text-white' : ''}`} />}
+                customTrigger={<Calendar className={`w-3.5 h-3.5 hover:scale-110 cursor-pointer transition-transform ${
+                  currentTheme === 'princess' ? 'text-[#FF6B81]' : 
+                  currentTheme === 'excel' ? 'text-white' : 
+                  'text-[#ABB2BF]'
+                }`} />}
               />
               <select
                 value={filterMode}
@@ -3015,10 +3019,11 @@ const CodeTiara = () => {
                   setFilterMode(e.target.value);
                   setFilterDate(getLocalDateString());
                 }}
-                className={`outline-none cursor-pointer text-xs font-bold ${
-                  currentTheme === 'excel' ? 'bg-[#107C41] text-white border-none' : 
-                  (currentTheme === 'developer' ? 'bg-[#1E1E1E] text-[#ABB2BF] border-none' : 'bg-transparent text-slate-600 border-none')
-                } ${currentTheme === 'princess' ? 'text-[#FF6B81]' : ''}`}
+                className={`outline-none cursor-pointer text-xs font-bold bg-transparent border-none ${
+                  currentTheme === 'princess' ? 'text-[#FF6B81] font-gamja' : 
+                  currentTheme === 'excel' ? 'text-white font-sans' : 
+                  'text-[#ABB2BF] font-mono'
+                }`}
                 title={t('app.tooltip_date_filter')}
               >
                 <option value="all" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.filter_all')}</option>
@@ -3051,7 +3056,7 @@ const CodeTiara = () => {
           </div>
 
           {/* Right: Icons Group */}
-          <div className="flex gap-1.5 items-center z-10" style={{ WebkitAppRegion: 'no-drag' }}>
+          <div className="flex gap-1.5 items-center z-10 w-1/3 justify-end" style={{ WebkitAppRegion: 'no-drag' }}>
             {/* ✨ Calendar Icon (Princess) */}
             {/* ✨ Calendar Icon (Princess) - DELETED per request */}
 
@@ -3081,10 +3086,10 @@ const CodeTiara = () => {
                 {/* Settings (Menu Trigger) */}
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className={`p-1 rounded hover:bg-slate-700/10 transition-colors ${isMenuOpen ? theme.accent.text : ''}`}
+                  className={`p-1 rounded hover:bg-slate-700/10 transition-colors text-[#FF6B81] ${isMenuOpen ? theme.accent.text : ''}`}
                   title={t('app.tooltip_menu')}
                 >
-                  <Menu className="w-4 h-4" />
+                  <Menu className="w-[22px] h-[22px]" />
                 </button>
 
                 {/* ✨ Dropdown Menu (Under Gear) */}
@@ -3154,10 +3159,12 @@ const CodeTiara = () => {
                 {/* Settings (Menu Trigger) */}
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className={`p-1 rounded hover:bg-slate-700/10 transition-colors ${isMenuOpen ? (currentTheme === 'excel' ? 'bg-white/20 font-bold' : theme.accent.text) : ''}`}
+                  className={`p-1 rounded hover:bg-slate-700/10 transition-colors ${
+                    currentTheme === 'excel' ? 'text-white' : 'text-[#ABB2BF]'
+                  } ${isMenuOpen ? (currentTheme === 'excel' ? 'bg-white/20 font-bold' : theme.accent.text) : ''}`}
                   title={t('app.tooltip_menu')}
                 >
-                  <Menu className="w-[18px] h-[18px]" />
+                  <Menu className="w-[22px] h-[22px]" />
                 </button>
 
                 {/* ✨ Dropdown Menu (Under Gear) - Non-Princess */}
