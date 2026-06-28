@@ -3413,7 +3413,7 @@ const CodeTiara = () => {
             )}
 
             {/* ✨ Fixed Status Header (Integrated Timer) - Shows in Mini Mode ONLY if Timer is Active */}
-            {!popoutCategoryId && (
+            {!popoutCategoryId && (currentTheme === 'excel' || !isMobile) && (
               <div className={`shrink-0 flex flex-col justify-center ${
                 isMiniMode ? 'min-h-[30px] py-0.5' : 'min-h-[58px]'
               } ${
