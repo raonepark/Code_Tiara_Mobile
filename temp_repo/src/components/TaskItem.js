@@ -613,7 +613,7 @@ const TaskItem = memo(({
                 </div>
 
                 {/* Action Buttons (Hover) */}
-                {editingTaskId !== task.id && (
+                {!isMobile && editingTaskId !== task.id && (
                     <div className={`absolute right-5 flex items-center opacity-0 group-hover:opacity-100 transition-all duration-300 ${theme.category?.actionButton ? theme.category.actionButton.wrapper : 'gap-2'}`}>
                         {/* Duplicate Button */}
                         <button
