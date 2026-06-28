@@ -5070,23 +5070,22 @@ const CodeTiara = () => {
                     currentTheme === 'excel' ? 'bg-white border border-[#D1D1D1]' :
                     'bg-[#2D2D30] border border-[#3E3E42]'
                   }`}>
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={editingRecurrence}
-                        onChange={(e) => setEditingRecurrence(e.target.value)}
-                        className={`flex-1 outline-none bg-transparent cursor-pointer text-base ${
-                          currentTheme === 'princess' ? 'text-[#FF6B81] font-bold' :
-                          currentTheme === 'excel' ? 'bg-[#F3F2F1] border border-[#D1D1D1] p-1.5 text-slate-700' :
-                          'text-[#ABB2BF]'
-                        }`}
-                        title={t('app.recurrence')}
-                      >
-                        <option value="none" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_none') || '안함'}</option>
-                        <option value="daily" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_daily') || '매일'}</option>
-                        <option value="weekly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_weekly') || '매주'}</option>
-                        <option value="monthly" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_monthly') || '매월'}</option>
-                        <option value="custom" className={currentTheme === 'developer' ? 'bg-[#252526] text-[#D4D4D4]' : (currentTheme === 'princess' ? 'bg-white text-[#FF6B81] font-bold' : 'bg-white text-slate-800')}>{t('app.recurrence_custom') || 'N일마다'}</option>
-                      </select>
+                    <div className="flex items-center gap-2 w-full">
+                      <div className="flex-1">
+                        <CustomSelect
+                          value={editingRecurrence}
+                          onChange={(val) => setEditingRecurrence(val)}
+                          options={[
+                            { value: 'none', label: t('app.recurrence_none') || '안함' },
+                            { value: 'daily', label: t('app.recurrence_daily') || '매일' },
+                            { value: 'weekly', label: t('app.recurrence_weekly') || '매주' },
+                            { value: 'monthly', label: t('app.recurrence_monthly') || '매월' },
+                            { value: 'custom', label: t('app.recurrence_custom') || 'N일마다' }
+                          ]}
+                          placeholder={t('app.recurrence') || '반복 설정'}
+                          currentTheme={currentTheme}
+                        />
+                      </div>
                     </div>
 
                     {editingRecurrence === 'weekly' && renderDayPicker(editingRecurrenceDays, setEditingRecurrenceDays, editingDate)}
