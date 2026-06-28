@@ -1,24 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings, ChevronDown, Download, Upload, GripVertical, Check, X, Trash2, Plus, RotateCcw, BookOpen } from 'lucide-react';
+import { Settings, ChevronDown, GripVertical, Check, X, Trash2, Plus, RotateCcw, BookOpen } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { THEME_CONFIG } from '../constants/themeConfig';
 import packageJson from '../../package.json';
 
 const { ipcRenderer } = window.require ? window.require('electron') : {};
 
-const FONTS_LIST = [
-    { id: 'default', labelKey: 'settings.font_default' },
-    { id: 'Pretendard', labelKey: 'settings.font_pretendard' },
-    { id: 'Gamja Flower', labelKey: 'settings.font_gamja' },
-    { id: 'Gaegu', labelKey: 'settings.font_gaegu' },
-    { id: 'Single Day', labelKey: 'settings.font_single_day' },
-    { id: 'Jua', labelKey: 'settings.font_jua' },
-    { id: 'Dongle', labelKey: 'settings.font_dongle' },
-    { id: 'Nanum Gothic', labelKey: 'settings.font_nanum_gothic' },
-    { id: 'Nanum Myeongjo', labelKey: 'settings.font_nanum_myeongjo' },
-    { id: 'Nanum Pen Script', labelKey: 'settings.font_nanum_pen' }
-];
+
 
 const SettingsPanel = ({
     isOpen, onClose, currentTheme, setCurrentTheme, theme,
@@ -124,190 +113,37 @@ const SettingsPanel = ({
                     )}
                 </div>
 
-                {/* ⏰ Timer & Font Card - Unified */}
-                <div className={theme.settings.wrapper}>
-                    <div className={theme.settings.header}>
-                        {t('settings.timerAndFont')}
-                    </div>
-
-                    {/* Timer Flex */}
-                    <div className="flex gap-3 mb-4">
-                        <div className="flex-1">
-                            <label className={`text-xs block mb-1 font-bold ml-1 ${theme.settings.sectionTitle}`}>{t('settings.focusMin')}</label>
-                            <input
-                                type="number"
-                                value={focusDuration}
-                                onChange={(e) => setFocusDuration(Number(e.target.value))}
-                                className={`w-full ${theme.settings.input} transition-all`}
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <label className={`text-xs block mb-1 font-bold ml-1 ${theme.settings.sectionTitle}`}>{t('settings.breakMin')}</label>
-                            <input
-                                type="number"
-                                value={breakDuration}
-                                onChange={(e) => setBreakDuration(Number(e.target.value))}
-                                className={`w-full ${theme.settings.input} transition-all`}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Font Size */}
-                    {!isMobile && (
-                        <div className={`pt-3 border-t ${theme.divider} mb-4`}>
-                            <div className="flex justify-between items-center mb-2 ml-1">
-                                <span className={`text-xs font-bold ${theme.settings.sectionTitle}`}>{t('settings.textSize')}</span>
-                                <span className={`text-xs font-bold ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-[#217346]' : 'text-[#61AFEF]')}`}>{fontSize}px</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <input
-                                    type="range"
-                                    min="10"
-                                    max="28"
-                                    value={fontSize}
-                                    onChange={(e) => setFontSize(Number(e.target.value))}
-                                    className={`flex-1 h-1.5 rounded-lg appearance-none cursor-pointer ${
-                                        currentTheme === 'princess' ? 'bg-[#FFD1DC] accent-[#FF6B81]' : 
-                                        currentTheme === 'excel' ? 'bg-[#E1E1E1] accent-[#217346]' : 
-                                        'bg-[#3E3E42] accent-[#61AFEF]'
+                {/* Auto Launch Card */}
+                {ipcRenderer && (
+                    <div className={theme.settings.wrapper}>
+                        <div className="flex justify-between items-center ml-1">
+                            <span className={`text-xs font-bold ${theme.settings.sectionTitle} !mb-0 flex items-center`}>
+                                {t('settings.autoLaunch')}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => handleAutoLaunchChange(!isAutoLaunch)}
+                                className={`relative inline-flex items-center flex-shrink-0 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none ${
+                                    currentTheme === 'princess'
+                                        ? `h-5 w-9 rounded-full border border-transparent ${isAutoLaunch ? 'bg-[#FF6B81] shadow-[0_2px_6px_rgba(255,107,129,0.3)]' : 'bg-pink-100/80 border-pink-200/50'}`
+                                        : currentTheme === 'excel'
+                                        ? `h-5 w-9 rounded-none border ${isAutoLaunch ? 'bg-[#107C41] border-[#107C41]' : 'bg-white border-[#A19F9D] hover:border-[#605E5C]'}`
+                                        : `h-5.5 w-10 rounded-sm border ${isAutoLaunch ? 'bg-[#E5C07B] border-[#E5C07B]' : 'bg-[#1E1E1E] border-[#3E3E42] hover:border-[#5C6370]'}`
+                                }`}
+                            >
+                                <span
+                                    className={`pointer-events-none inline-block transform transition duration-200 ease-in-out ${
+                                        currentTheme === 'princess'
+                                            ? `h-4 w-4 rounded-full bg-white shadow-[0_1px_3px_rgba(255,107,129,0.2)] ${isAutoLaunch ? 'translate-x-[16px]' : 'translate-x-0.5'}`
+                                            : currentTheme === 'excel'
+                                            ? `h-3.5 w-3.5 rounded-none ${isAutoLaunch ? 'bg-white translate-x-[18px]' : 'bg-[#605E5C] translate-x-0.5'}`
+                                            : `h-3.5 w-3.5 rounded-sm ${isAutoLaunch ? 'bg-[#282C34] translate-x-[22px]' : 'bg-[#ABB2BF] translate-x-0.5'}`
                                     }`}
                                 />
-                            </div>
-                            {/* Quick Presets */}
-                            <div className="flex gap-1.5 mt-2 justify-between">
-                                {[12, 14, 16, 18, 22].map((size) => (
-                                    <button
-                                        key={size}
-                                        type="button"
-                                        onClick={() => setFontSize(size)}
-                                        className={`flex-1 py-1 text-[10px] transition-all font-bold rounded-[8px] border focus:outline-none ${
-                                            fontSize === size
-                                                ? (currentTheme === 'princess' ? 'bg-[#FF6B81] border-[#FF6B81] text-white' : (currentTheme === 'excel' ? 'bg-[#217346] border-[#217346] text-white' : 'bg-[#61AFEF] border-[#61AFEF] text-slate-900'))
-                                                : (currentTheme === 'princess' ? 'bg-white border-[#FFD1DC] text-[#FFB6C1] hover:bg-[#FFF0F5]' : (currentTheme === 'excel' ? 'bg-[#F3F2F1] border-[#D1D1D1] text-slate-600 hover:bg-[#E1E1E1]' : 'bg-[#2D2D30] border-transparent text-slate-400 hover:text-white'))
-                                        }`}
-                                    >
-                                        {size === 12 ? t('settings.sizeSmall') : size === 14 ? t('settings.sizeDefault') : size === 16 ? t('settings.sizeMedium') : size === 18 ? t('settings.sizeLarge') : t('settings.sizeXLarge')}
-                                    </button>
-                                ))}
-                            </div>
+                            </button>
                         </div>
-                    )}
-
-                    {/* Font Family */}
-                    {!isMobile && (
-                        <div className={`pt-3 border-t ${theme.divider}`}>
-                            <div className={`text-xs mb-2 font-bold ml-1 ${theme.settings.sectionTitle}`}>
-                                {t('settings.fontSelection')}
-                            </div>
-                            <div className="relative font-select-dropdown">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsFontDropdownOpen(!isFontDropdownOpen)}
-                                    className={`w-full ${theme.settings.input} text-sm transition-all focus:outline-none flex justify-between items-center py-2 px-3 border border-pink-200/50 shadow-sm`}
-                                    style={fontFamily !== 'default' ? { fontFamily: `'${fontFamily}', sans-serif` } : {}}
-                                >
-                                    <span>{FONTS_LIST.find(f => f.id === fontFamily)?.labelKey ? t(FONTS_LIST.find(f => f.id === fontFamily).labelKey) : t('settings.font_default')}</span>
-                                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isFontDropdownOpen ? 'rotate-180' : ''} ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-[#217346]' : 'text-slate-400')}`} />
-                                </button>
-                                
-                                {isFontDropdownOpen && (
-                                    <div 
-                                        className={`absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-50 shadow-xl border custom-scrollbar transition-all animate-in fade-in slide-in-from-top-2 duration-200 ${
-                                            currentTheme === 'princess' 
-                                                ? 'bg-white/95 backdrop-blur-md border-[#FFD1DC] rounded-[16px] text-slate-800' 
-                                                : (currentTheme === 'excel' 
-                                                    ? 'bg-[#F3F2F1] border-[#D1D1D1] text-slate-800' 
-                                                    : 'bg-[#252526] border-[#3E3E42] text-[#D4D4D4] rounded-lg')
-                                        }`}
-                                    >
-                                        {FONTS_LIST.map(f => {
-                                            const isSelected = fontFamily === f.id;
-                                            let hoverClass = '';
-                                            if (currentTheme === 'princess') {
-                                                hoverClass = isSelected ? 'bg-[#FFE4E1] text-[#FF6B81]' : 'hover:bg-[#FFF0F5] text-slate-700';
-                                            } else if (currentTheme === 'excel') {
-                                                hoverClass = isSelected ? 'bg-[#E1DFDD] text-[#217346]' : 'hover:bg-[#EDEBE9] text-slate-700';
-                                            } else {
-                                                hoverClass = isSelected ? 'bg-[#007ACC] text-white' : 'hover:bg-[#2D2D30] text-[#ABB2BF]';
-                                            }
-
-                                            return (
-                                                <button
-                                                    key={f.id}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setFontFamily(f.id);
-                                                        setIsFontDropdownOpen(false);
-                                                    }}
-                                                    className={`w-full text-left py-2 px-3 text-xs sm:text-sm font-medium transition-colors flex flex-col gap-0.5 border-b last:border-b-0 font-preview-item ${
-                                                        currentTheme === 'princess' ? 'border-[#FFF0F5]' : (currentTheme === 'excel' ? 'border-[#E1E1E1]' : 'border-[#2D2D30]')
-                                                    } ${hoverClass}`}
-                                                    style={{ fontFamily: f.id === 'default' ? "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif" : `'${f.id}', sans-serif` }}
-                                                >
-                                                    <span className="font-semibold">{t(f.labelKey)}</span>
-                                                    <span className="text-[10px] opacity-60">
-                                                        {f.id === 'default' ? t('settings.font_preview_default') : t('settings.font_preview_text')}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                    {/* Auto Launch Setting */}
-                    {ipcRenderer && (
-                        <div className={`pt-3 border-t ${theme.divider} mt-4`}>
-                            <div className="flex justify-between items-center ml-1">
-                                <span className={`text-xs font-bold ${theme.settings.sectionTitle} !mb-0 flex items-center`}>
-                                    {t('settings.autoLaunch')}
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={() => handleAutoLaunchChange(!isAutoLaunch)}
-                                    className={`relative inline-flex items-center flex-shrink-0 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none ${
-                                        currentTheme === 'princess'
-                                            ? `h-5 w-9 rounded-full border border-transparent ${isAutoLaunch ? 'bg-[#FF6B81] shadow-[0_2px_6px_rgba(255,107,129,0.3)]' : 'bg-pink-100/80 border-pink-200/50'}`
-                                            : currentTheme === 'excel'
-                                            ? `h-5 w-9 rounded-none border ${isAutoLaunch ? 'bg-[#107C41] border-[#107C41]' : 'bg-white border-[#A19F9D] hover:border-[#605E5C]'}`
-                                            : `h-5.5 w-10 rounded-sm border ${isAutoLaunch ? 'bg-[#E5C07B] border-[#E5C07B]' : 'bg-[#1E1E1E] border-[#3E3E42] hover:border-[#5C6370]'}`
-                                    }`}
-                                >
-                                    <span
-                                        className={`pointer-events-none inline-block transform transition duration-200 ease-in-out ${
-                                            currentTheme === 'princess'
-                                                ? `h-4 w-4 rounded-full bg-white shadow-[0_1px_3px_rgba(255,107,129,0.2)] ${isAutoLaunch ? 'translate-x-[16px]' : 'translate-x-0.5'}`
-                                                : currentTheme === 'excel'
-                                                ? `h-3.5 w-3.5 rounded-none ${isAutoLaunch ? 'bg-white translate-x-[18px]' : 'bg-[#605E5C] translate-x-0.5'}`
-                                                : `h-3.5 w-3.5 rounded-sm ${isAutoLaunch ? 'bg-[#282C34] translate-x-[22px]' : 'bg-[#ABB2BF] translate-x-0.5'}`
-                                        }`}
-                                    />
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* 💾 Data & Category Card - Unified */}
-                <div className={theme.settings.wrapper}>
-                    <div className={theme.settings.header}>
-                        {t('settings.dataBackupRestore')}
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <button onClick={exportData}
-                            className={`flex flex-col items-center justify-center p-3 transition-all group ${theme.settings.button.default} hover:-translate-y-0.5`}
-                        >
-                            <Download className="w-5 h-5 mb-1" /> <span className="text-xs font-bold">{t('settings.backup')}</span>
-                        </button>
-                        <button onClick={triggerImport}
-                            className={`flex flex-col items-center justify-center p-3 transition-all group ${theme.settings.button.default} hover:-translate-y-0.5`}
-                        >
-                            <Upload className="w-5 h-5 mb-1" /> <span className="text-xs font-bold">{t('settings.restore')}</span>
-                        </button>
-                        <input type="file" ref={fileInputRef} onChange={importData} accept=".json" className="hidden" />
-                    </div>
-                </div>
+                )}
 
                 {/* 🎨 Unified Category Management (All Themes use 'Editable Row') */}
                 <div className={`p-3 border-t ${theme.divider}`}>
