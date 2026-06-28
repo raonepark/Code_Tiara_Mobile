@@ -302,7 +302,7 @@ const TaskItem = memo(({
             className={
                 isMobile
                     ? `relative overflow-hidden bg-transparent !border-none !shadow-none !p-0 ${
-                          isMiniMode ? '!mx-0 !mb-1 last:!mb-0' : ''
+                          isMiniMode ? '!mx-0 !mb-2 last:!mb-0' : ''
                       } ${
                           currentTheme === 'princess' ? 'mb-2 mx-3 first:mt-3 last:mb-0' : 
                           (currentTheme === 'developer' ? 'mb-1' : '')
@@ -331,7 +331,7 @@ const TaskItem = memo(({
             <div
                 className={
                     isMobile
-                        ? `${theme.category.taskItem} !mx-0 !my-0 !mb-0 !mt-0 ${isMiniMode ? '!mx-0 !mb-1 !p-1.5 last:!mb-0' : ''} ${task.completed ? 'opacity-60' : ''} flex-1 flex items-center w-full z-10`
+                        ? `${theme.category.taskItem} !mx-0 !my-0 !mb-0 !mt-0 ${isMiniMode ? '!mx-0 !mb-2 !p-3.5 last:!mb-0' : ''} ${task.completed ? 'opacity-60' : ''} flex-1 flex items-center w-full z-10`
                         : "flex-1 flex items-center w-full z-10 bg-inherit"
                 }
                 style={{
@@ -357,7 +357,7 @@ const TaskItem = memo(({
                         onClick={(e) => { e.stopPropagation(); toggleTask(task.id); }}
                         className={`mt-0.5 flex-shrink-0 transition-colors ${task.completed ? theme.task.checkboxDone : theme.task.checkbox}`}
                     >
-                        {task.completed ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                        {task.completed ? <CheckCircle2 className={isMobile ? 'w-5 h-5' : 'w-4 h-4'} /> : <Circle className={isMobile ? 'w-5 h-5' : 'w-4 h-4'} />}
                     </button>
                 )}
 

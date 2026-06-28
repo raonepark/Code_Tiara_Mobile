@@ -344,7 +344,7 @@ const CodeTiara = () => {
 
     // ✨ Mobile UX: Increase font size overall for mobile
     if (window.innerWidth <= 768) {
-      baseScale *= 1.15;
+      baseScale *= 1.22;
     }
 
     if (baseScale === 1.0) return 1.0;
@@ -2968,43 +2968,40 @@ const CodeTiara = () => {
         {/* Terminal Header Bar */}
         {!popoutCategoryId && (
         <div className={`${theme.header.bg} px-3 h-10 flex items-center justify-between ${theme.header.border} border-b relative z-[999] shrink-0 select-none`} style={{ WebkitAppRegion: 'drag', transform: 'translateZ(0)' }}>
-          {/* Left: Window Controls */}
-          {isMobile ? (
-            <div className="w-12 h-2.5 z-10" />
-          ) : (
-            <div className="flex gap-1.5 z-10" style={{ WebkitAppRegion: 'no-drag' }}>
-              <button
-                onClick={() => sendIPC('close-window')}
-                className={`w-2.5 h-2.5 rounded-full bg-[#FF5F56] hover:bg-[#FF5F56]/80 transition-colors cursor-pointer flex items-center justify-center group`}
-                title={t('app.tooltip_close')}
-              >
-                <X className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
-              </button>
-              <button
-                onClick={() => sendIPC('minimize-window')}
-                className={`w-2.5 h-2.5 rounded-full bg-[#FFBD2E] hover:bg-[#FFBD2E]/80 transition-colors cursor-pointer flex items-center justify-center group`}
-                title={t('app.tooltip_minimize')}
-              >
-                <Minus className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
-              </button>
-              <button
-                onClick={() => sendIPC('maximize-window')}
-                className={`w-2.5 h-2.5 rounded-full bg-[#27C93F] hover:bg-[#27C93F]/80 transition-colors cursor-pointer flex items-center justify-center group`}
-                title={t('app.tooltip_fit_screen')}
-              >
-                <Plus className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
-              </button>
-            </div>
-          )}
+          {/* Left: Window Controls & Title */}
+          <div className="flex items-center gap-3 z-10">
+            {!isMobile && (
+              <div className="flex gap-1.5" style={{ WebkitAppRegion: 'no-drag' }}>
+                <button
+                  onClick={() => sendIPC('close-window')}
+                  className={`w-2.5 h-2.5 rounded-full bg-[#FF5F56] hover:bg-[#FF5F56]/80 transition-colors cursor-pointer flex items-center justify-center group`}
+                  title={t('app.tooltip_close')}
+                >
+                  <X className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
+                </button>
+                <button
+                  onClick={() => sendIPC('minimize-window')}
+                  className={`w-2.5 h-2.5 rounded-full bg-[#FFBD2E] hover:bg-[#FFBD2E]/80 transition-colors cursor-pointer flex items-center justify-center group`}
+                  title={t('app.tooltip_minimize')}
+                >
+                  <Minus className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
+                </button>
+                <button
+                  onClick={() => sendIPC('maximize-window')}
+                  className={`w-2.5 h-2.5 rounded-full bg-[#27C93F] hover:bg-[#27C93F]/80 transition-colors cursor-pointer flex items-center justify-center group`}
+                  title={t('app.tooltip_fit_screen')}
+                >
+                  <Plus className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
+                </button>
+              </div>
+            )}
 
-          {/* Center: Title (Display Only - Drag Friendly) */}
-          <div className={`flex-1 flex justify-center text-[10px] ${currentTheme === 'excel' ? 'text-white' : theme.header.text} font-bold px-4 pointer-events-none`}>
-            <div className={`${isMiniMode ? 'flex' : 'hidden min-[220px]:flex'} items-center gap-1`}>
+            <div className="flex items-center gap-1">
               <span 
-                className={`truncate max-w-[150px] sm:max-w-[200px] ${
+                className={`truncate max-w-[180px] sm:max-w-[300px] ${
                   currentTheme === 'princess' 
                     ? 'text-sm font-bold tracking-tight text-[#FF6B81]' 
-                    : `text-xs sm:text-sm font-bold ${theme.header.text} uppercase tracking-widest`
+                    : `text-xs sm:text-sm font-bold ${currentTheme === 'excel' ? 'text-white' : theme.header.text} uppercase tracking-widest`
                 }`}
               >
                 {currentTheme === 'princess' && projectTitle === defaultTitle ? <>{t('app.my_diary')} <span className="text-xs">🎀</span></> : projectTitle}
@@ -3046,7 +3043,7 @@ const CodeTiara = () => {
                   className={`p-1 rounded hover:bg-slate-700/10 transition-colors ${isMenuOpen ? theme.accent.text : ''}`}
                   title={t('app.tooltip_menu')}
                 >
-                  <Settings className="w-3 h-3" />
+                  <Menu className="w-4 h-4" />
                 </button>
 
                 {/* ✨ Dropdown Menu (Under Gear) */}
@@ -3119,7 +3116,7 @@ const CodeTiara = () => {
                   className={`p-1 rounded hover:bg-slate-700/10 transition-colors ${isMenuOpen ? (currentTheme === 'excel' ? 'bg-white/20 font-bold' : theme.accent.text) : ''}`}
                   title={t('app.tooltip_menu')}
                 >
-                  <Settings className="w-4 h-4" />
+                  <Menu className="w-[18px] h-[18px]" />
                 </button>
 
                 {/* ✨ Dropdown Menu (Under Gear) - Non-Princess */}
