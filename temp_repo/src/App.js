@@ -290,6 +290,16 @@ const CodeTiara = () => {
     return localStorage.getItem('lumora_theme') || 'princess';
   });
 
+  // Send theme changes to React Native WebView wrapper
+  useEffect(() => {
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'THEME_CHANGE',
+        theme: currentTheme
+      }));
+    }
+  }, [currentTheme]);
+
   // --- 🧊 Modal States ---
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
 
@@ -397,6 +407,7 @@ const CodeTiara = () => {
   // --- ✏️ 수정 모드 State ---
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editingText, setEditingText] = useState('');
+  const isMobile = typeof window !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
   const [editingMemo, setEditingMemo] = useState('');
   const [editingDate, setEditingDate] = useState(''); // ✨ 수정 모드 날짜
   const [editingHour, setEditingHour] = useState('');
@@ -2845,29 +2856,33 @@ const CodeTiara = () => {
         {!popoutCategoryId && (
         <div className={`${theme.header.bg} px-3 h-10 flex items-center justify-between ${theme.header.border} border-b relative z-[999] shrink-0 select-none`} style={{ WebkitAppRegion: 'drag', transform: 'translateZ(0)' }}>
           {/* Left: Window Controls */}
-          <div className="flex gap-1.5 z-10" style={{ WebkitAppRegion: 'no-drag' }}>
-            <button
-              onClick={() => sendIPC('close-window')}
-              className={`w-2.5 h-2.5 rounded-full bg-[#FF5F56] hover:bg-[#FF5F56]/80 transition-colors cursor-pointer flex items-center justify-center group`}
-              title={t('app.tooltip_close')}
-            >
-              <X className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
-            </button>
-            <button
-              onClick={() => sendIPC('minimize-window')}
-              className={`w-2.5 h-2.5 rounded-full bg-[#FFBD2E] hover:bg-[#FFBD2E]/80 transition-colors cursor-pointer flex items-center justify-center group`}
-              title={t('app.tooltip_minimize')}
-            >
-              <Minus className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
-            </button>
-            <button
-              onClick={() => sendIPC('maximize-window')}
-              className={`w-2.5 h-2.5 rounded-full bg-[#27C93F] hover:bg-[#27C93F]/80 transition-colors cursor-pointer flex items-center justify-center group`}
-              title={t('app.tooltip_fit_screen')}
-            >
-              <Plus className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
-            </button>
-          </div>
+          {isMobile ? (
+            <div className="w-12 h-2.5 z-10" />
+          ) : (
+            <div className="flex gap-1.5 z-10" style={{ WebkitAppRegion: 'no-drag' }}>
+              <button
+                onClick={() => sendIPC('close-window')}
+                className={`w-2.5 h-2.5 rounded-full bg-[#FF5F56] hover:bg-[#FF5F56]/80 transition-colors cursor-pointer flex items-center justify-center group`}
+                title={t('app.tooltip_close')}
+              >
+                <X className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
+              </button>
+              <button
+                onClick={() => sendIPC('minimize-window')}
+                className={`w-2.5 h-2.5 rounded-full bg-[#FFBD2E] hover:bg-[#FFBD2E]/80 transition-colors cursor-pointer flex items-center justify-center group`}
+                title={t('app.tooltip_minimize')}
+              >
+                <Minus className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
+              </button>
+              <button
+                onClick={() => sendIPC('maximize-window')}
+                className={`w-2.5 h-2.5 rounded-full bg-[#27C93F] hover:bg-[#27C93F]/80 transition-colors cursor-pointer flex items-center justify-center group`}
+                title={t('app.tooltip_fit_screen')}
+              >
+                <Plus className="w-1.5 h-1.5 text-black/50 opacity-0 group-hover:opacity-100" />
+              </button>
+            </div>
+          )}
 
           {/* Center: Title (Display Only - Drag Friendly) */}
           <div className={`flex-1 flex justify-center text-[10px] ${currentTheme === 'excel' ? 'text-white' : theme.header.text} font-bold px-4 pointer-events-none`}>
@@ -2935,12 +2950,14 @@ const CodeTiara = () => {
                         >
                           <span>{isMiniMode ? '🖥️' : '📱'}</span> {isMiniMode ? t('app.full_mode') : t('app.mini_mode')}
                         </button>
-                        <button
-                          onClick={handleMenuTimerClick}
-                          className="px-3 py-2 text-xs font-bold hover:bg-[#FFF0F5] hover:text-[#FF6B81] text-left flex items-center gap-2 transition-colors"
-                        >
-                          <span>⏱️</span> {t('app.timer')}
-                        </button>
+                        {!isMobile && (
+                          <button
+                            onClick={handleMenuTimerClick}
+                            className="px-3 py-2 text-xs font-bold hover:bg-[#FFF0F5] hover:text-[#FF6B81] text-left flex items-center gap-2 transition-colors"
+                          >
+                            <span>⏱️</span> {t('app.timer')}
+                          </button>
+                        )}
                         <button
                           onClick={() => { setIsClearConfirmOpen(true); setIsMenuOpen(false); setIsSettingsOpen(false); }}
                           className="px-3 py-2 text-xs font-bold hover:bg-[#FFF0F5] hover:text-[#FF6B81] text-left flex items-center gap-2 transition-colors"
@@ -3016,12 +3033,14 @@ const CodeTiara = () => {
                         >
                           <span className={theme.iconType === 'table' ? "opacity-100" : ""}>{isMiniMode ? '🖥️' : '📱'}</span> {isMiniMode ? t('app.full_mode') : t('app.mini_mode')}
                         </button>
-                        <button
-                          onClick={handleMenuTimerClick}
-                          className={`px-3 py-2 text-xs font-bold text-left flex items-center gap-2 transition-colors ${theme.dropdown.itemInactive}`}
-                        >
-                          <span className={theme.iconType === 'table' ? "opacity-100" : ""}>⏱️</span> {t('app.timer')}
-                        </button>
+                        {!isMobile && (
+                          <button
+                            onClick={handleMenuTimerClick}
+                            className={`px-3 py-2 text-xs font-bold text-left flex items-center gap-2 transition-colors ${theme.dropdown.itemInactive}`}
+                          >
+                            <span className={theme.iconType === 'table' ? "opacity-100" : ""}>⏱️</span> {t('app.timer')}
+                          </button>
+                        )}
                         <button
                           onClick={() => { setIsClearConfirmOpen(true); setIsMenuOpen(false); setIsSettingsOpen(false); }}
                           className={`px-3 py-2 text-xs font-bold text-left flex items-center gap-2 transition-colors ${theme.dropdown.itemInactive}`}
@@ -3255,7 +3274,7 @@ const CodeTiara = () => {
                   : `border-b border-slate-800/50 ${isMiniMode ? 'px-2' : 'px-4 pt-4 pb-2'}`
               }`}>
 
-                {isTimerOpen && !(poppedOutCategories.includes('timer') && isTimerPlaceholderDismissed) ? (
+                {!isMobile && isTimerOpen && !(poppedOutCategories.includes('timer') && isTimerPlaceholderDismissed) ? (
                   poppedOutCategories.includes('timer') ? (
                     /* ⏱️ Popped Out Timer Placeholder */
                     <div className="flex items-center justify-between w-full gap-2 animate-in fade-in slide-in-from-top-1 duration-300 select-none min-w-0">
@@ -3320,9 +3339,11 @@ const CodeTiara = () => {
                             <button onClick={toggleTimer} className={`p-1.5 hover:bg-[#E1E1E1] transition-colors border-r border-[#E1E1E1] ${isTimerRunning ? 'text-[#217346]' : 'text-slate-700'}`}>
                               {isTimerRunning ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
                             </button>
-                            <button onClick={handleTimerPopout} className="p-1.5 hover:bg-[#E1E1E1] text-slate-600 transition-colors border-r border-[#E1E1E1]" title={t('app.tooltip_popout')}>
-                              <PanelTopOpen className="w-3.5 h-3.5" />
-                            </button>
+                            {!isMobile && (
+                              <button onClick={handleTimerPopout} className="p-1.5 hover:bg-[#E1E1E1] text-slate-600 transition-colors border-r border-[#E1E1E1]" title={t('app.tooltip_popout')}>
+                                <PanelTopOpen className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                             <button onClick={() => setIsTimerOpen(false)} className="p-1.5 hover:bg-red-100 text-slate-500 hover:text-red-500 transition-colors">
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -3356,9 +3377,11 @@ const CodeTiara = () => {
                             <button onClick={toggleTimer} className={`p-2 rounded-full transition-transform hover:scale-110 ${currentTheme === 'princess' ? `${timerMode === 'focus' ? 'bg-[#FF6B81]/10 text-[#FF6B81] hover:bg-[#FF6B81]/20' : 'bg-[#FFB6C1]/10 text-[#FF6B81] hover:bg-[#FFB6C1]/20'}` : (currentTheme === 'developer' ? 'text-[#ABB2BF] hover:text-white' : 'bg-slate-700 text-slate-200')}`}>
                               {isTimerRunning ? <Pause className="w-4 h-4 ml-px" /> : <Play className="w-4 h-4 ml-0.5" />}
                             </button>
-                            <button onClick={handleTimerPopout} className={`p-1 rounded-full text-slate-500 hover:bg-black/5 transition-colors ${currentTheme === 'developer' ? 'text-[#ABB2BF] hover:bg-[#3E3E42]' : (currentTheme === 'princess' ? 'text-[#FF6B81] hover:bg-[#FF6B81]/10' : '')}`} title={t('app.tooltip_popout')}>
-                              <PanelTopOpen className="w-3.5 h-3.5" />
-                            </button>
+                            {!isMobile && (
+                              <button onClick={handleTimerPopout} className={`p-1 rounded-full text-slate-500 hover:bg-black/5 transition-colors ${currentTheme === 'developer' ? 'text-[#ABB2BF] hover:bg-[#3E3E42]' : (currentTheme === 'princess' ? 'text-[#FF6B81] hover:bg-[#FF6B81]/10' : '')}`} title={t('app.tooltip_popout')}>
+                                <PanelTopOpen className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                             <button onClick={() => setIsTimerOpen(false)} className={`p-1 rounded-full text-slate-500 hover:bg-black/5 transition-colors ${currentTheme === 'developer' ? 'text-[#ABB2BF] hover:bg-[#3E3E42]' : (currentTheme === 'princess' ? 'text-slate-400' : '')}`}>
                               <X className="w-4 h-4" />
                             </button>
@@ -3765,49 +3788,51 @@ const CodeTiara = () => {
                              )}
 
                              {/* ✨ Pop-out / Return Button */}
-                             <button
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 if (popoutCategoryId) {
-                                   // Return to main window
-                                   const updated = poppedOutCategories.filter(id => id !== category.id);
-                                   setPoppedOutCategories(updated);
-                                   localStorage.setItem('lumora_popped_out', JSON.stringify(updated));
-                                   sendIPC('close-popout');
-                                 } else {
-                                   // Pop out
-                                   const updated = [...poppedOutCategories, category.id];
-                                   setPoppedOutCategories(updated);
-                                   localStorage.setItem('lumora_popped_out', JSON.stringify(updated));
+                             {!isMobile && (
+                               <button
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   if (popoutCategoryId) {
+                                     // Return to main window
+                                     const updated = poppedOutCategories.filter(id => id !== category.id);
+                                     setPoppedOutCategories(updated);
+                                     localStorage.setItem('lumora_popped_out', JSON.stringify(updated));
+                                     sendIPC('close-popout');
+                                   } else {
+                                     // Pop out
+                                     const updated = [...poppedOutCategories, category.id];
+                                     setPoppedOutCategories(updated);
+                                     localStorage.setItem('lumora_popped_out', JSON.stringify(updated));
 
-                                   // Add to pinned categories by default if not already there
-                                   const isCurrentlyPinned = pinnedCategories.includes(Number(category.id)) || pinnedCategories.includes(String(category.id));
-                                   let newPinned = pinnedCategories;
-                                   if (!isCurrentlyPinned) {
-                                     newPinned = [...pinnedCategories, category.id];
-                                     setPinnedCategories(newPinned);
-                                     localStorage.setItem('lumora_pinned_categories', JSON.stringify(newPinned));
+                                     // Add to pinned categories by default if not already there
+                                     const isCurrentlyPinned = pinnedCategories.includes(Number(category.id)) || pinnedCategories.includes(String(category.id));
+                                     let newPinned = pinnedCategories;
+                                     if (!isCurrentlyPinned) {
+                                       newPinned = [...pinnedCategories, category.id];
+                                       setPinnedCategories(newPinned);
+                                       localStorage.setItem('lumora_pinned_categories', JSON.stringify(newPinned));
+                                     }
+
+                                     sendIPC('open-popout', { categoryId: category.id, isPinned: true });
                                    }
-
-                                   sendIPC('open-popout', { categoryId: category.id, isPinned: true });
-                                 }
-                               }}
-                               style={currentTheme === 'princess' ? {
-                                 WebkitAppRegion: popoutCategoryId ? 'no-drag' : 'auto',
-                                 color: CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185',
-                                 backgroundColor: 'transparent',
-                                 borderColor: CATEGORY_HUES[category.colorTheme] || '#FBCFE8'
-                               } : { WebkitAppRegion: popoutCategoryId ? 'no-drag' : 'auto' }}
-                               onMouseEnter={(e) => { if (currentTheme === 'princess') { e.currentTarget.style.backgroundColor = (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185'); e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'transparent'; } }}
-                               onMouseLeave={(e) => { if (currentTheme === 'princess') { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185'); e.currentTarget.style.borderColor = (CATEGORY_HUES[category.colorTheme] || '#FBCFE8'); } }}
-                               className={`flex items-center justify-center transition-all duration-300 mr-2 shadow-sm active:scale-95
-                               ${currentTheme === 'princess'
-                                   ? 'w-6 h-6 rounded-[8px] border hover:shadow-md group'
-                                   : (currentTheme === 'excel' ? 'w-5 h-5 bg-[#F3F2F1] text-[#217346] hover:bg-[#217346] hover:text-white border border-[#D1D1D1] rounded-none' : 'w-5 h-5 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white rounded-md')}`}
-                               title={popoutCategoryId ? t('app.tooltip_return_main') : t('app.tooltip_popout')}
-                             >
-                               {popoutCategoryId ? <X className="w-3.5 h-3.5" /> : <PanelTopOpen className="w-3.5 h-3.5" />}
-                             </button>
+                                 }}
+                                 style={currentTheme === 'princess' ? {
+                                   WebkitAppRegion: popoutCategoryId ? 'no-drag' : 'auto',
+                                   color: CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185',
+                                   backgroundColor: 'transparent',
+                                   borderColor: CATEGORY_HUES[category.colorTheme] || '#FBCFE8'
+                                 } : { WebkitAppRegion: popoutCategoryId ? 'no-drag' : 'auto' }}
+                                 onMouseEnter={(e) => { if (currentTheme === 'princess') { e.currentTarget.style.backgroundColor = (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185'); e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'transparent'; } }}
+                                 onMouseLeave={(e) => { if (currentTheme === 'princess') { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = (CATEGORY_ICON_HUES[category.colorTheme] || '#FB7185'); e.currentTarget.style.borderColor = (CATEGORY_HUES[category.colorTheme] || '#FBCFE8'); } }}
+                                 className={`flex items-center justify-center transition-all duration-300 mr-2 shadow-sm active:scale-95
+                                 ${currentTheme === 'princess'
+                                     ? 'w-6 h-6 rounded-[8px] border hover:shadow-md group'
+                                     : (currentTheme === 'excel' ? 'w-5 h-5 bg-[#F3F2F1] text-[#217346] hover:bg-[#217346] hover:text-white border border-[#D1D1D1] rounded-none' : 'w-5 h-5 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white rounded-md')}`}
+                                 title={popoutCategoryId ? t('app.tooltip_return_main') : t('app.tooltip_popout')}
+                               >
+                                 {popoutCategoryId ? <X className="w-3.5 h-3.5" /> : <PanelTopOpen className="w-3.5 h-3.5" />}
+                               </button>
+                             )}
 
                             <span
                               style={currentTheme === 'princess' ? {
@@ -3918,6 +3943,7 @@ const CodeTiara = () => {
 
                         {/* ✨ Quick Add Form (Collapsible) */}
                         <div ref={miniModeAdderId === category.id ? miniModeFormRef : null} className={`${miniModeAdderId === category.id ? `max-h-80 opacity-100 overflow-visible mb-4 ${(currentTheme === 'princess' || popoutCategoryId) ? 'mt-1 px-2' : 'mt-2 px-2'}` : `max-h-0 opacity-0 mt-0 px-2 overflow-hidden`} transition-all duration-300 ease-in-out ${popoutCategoryId ? 'shrink-0' : ''}`}>
+                          {miniModeAdderId === category.id && (
                             <form
                               onSubmit={(e) => addTask(e, category.id)}
                               style={currentTheme === 'princess' ? {
@@ -4057,7 +4083,9 @@ const CodeTiara = () => {
                               </div>
                             </div>
                           </form>
-                        </div>
+                        
+                          )}
+</div>
 
                         </div> {/* 💡 공동 스크롤 컨테이너 닫기 */}
 
