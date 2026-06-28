@@ -194,66 +194,68 @@ const SettingsPanel = ({
                     )}
 
                     {/* Font Family */}
-                    <div className={`pt-3 border-t ${theme.divider}`}>
-                        <div className={`text-xs mb-2 font-bold ml-1 ${theme.settings.sectionTitle}`}>
-                            {t('settings.fontSelection')}
-                        </div>
-                        <div className="relative font-select-dropdown">
-                            <button
-                                type="button"
-                                onClick={() => setIsFontDropdownOpen(!isFontDropdownOpen)}
-                                className={`w-full ${theme.settings.input} text-sm transition-all focus:outline-none flex justify-between items-center py-2 px-3 border border-pink-200/50 shadow-sm`}
-                                style={fontFamily !== 'default' ? { fontFamily: `'${fontFamily}', sans-serif` } : {}}
-                            >
-                                <span>{FONTS_LIST.find(f => f.id === fontFamily)?.labelKey ? t(FONTS_LIST.find(f => f.id === fontFamily).labelKey) : t('settings.font_default')}</span>
-                                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isFontDropdownOpen ? 'rotate-180' : ''} ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-[#217346]' : 'text-slate-400')}`} />
-                            </button>
-                            
-                            {isFontDropdownOpen && (
-                                <div 
-                                    className={`absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-50 shadow-xl border custom-scrollbar transition-all animate-in fade-in slide-in-from-top-2 duration-200 ${
-                                        currentTheme === 'princess' 
-                                            ? 'bg-white/95 backdrop-blur-md border-[#FFD1DC] rounded-[16px] text-slate-800' 
-                                            : (currentTheme === 'excel' 
-                                                ? 'bg-[#F3F2F1] border-[#D1D1D1] text-slate-800' 
-                                                : 'bg-[#252526] border-[#3E3E42] text-[#D4D4D4] rounded-lg')
-                                    }`}
+                    {!isMobile && (
+                        <div className={`pt-3 border-t ${theme.divider}`}>
+                            <div className={`text-xs mb-2 font-bold ml-1 ${theme.settings.sectionTitle}`}>
+                                {t('settings.fontSelection')}
+                            </div>
+                            <div className="relative font-select-dropdown">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsFontDropdownOpen(!isFontDropdownOpen)}
+                                    className={`w-full ${theme.settings.input} text-sm transition-all focus:outline-none flex justify-between items-center py-2 px-3 border border-pink-200/50 shadow-sm`}
+                                    style={fontFamily !== 'default' ? { fontFamily: `'${fontFamily}', sans-serif` } : {}}
                                 >
-                                    {FONTS_LIST.map(f => {
-                                        const isSelected = fontFamily === f.id;
-                                        let hoverClass = '';
-                                        if (currentTheme === 'princess') {
-                                            hoverClass = isSelected ? 'bg-[#FFE4E1] text-[#FF6B81]' : 'hover:bg-[#FFF0F5] text-slate-700';
-                                        } else if (currentTheme === 'excel') {
-                                            hoverClass = isSelected ? 'bg-[#E1DFDD] text-[#217346]' : 'hover:bg-[#EDEBE9] text-slate-700';
-                                        } else {
-                                            hoverClass = isSelected ? 'bg-[#007ACC] text-white' : 'hover:bg-[#2D2D30] text-[#ABB2BF]';
-                                        }
+                                    <span>{FONTS_LIST.find(f => f.id === fontFamily)?.labelKey ? t(FONTS_LIST.find(f => f.id === fontFamily).labelKey) : t('settings.font_default')}</span>
+                                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isFontDropdownOpen ? 'rotate-180' : ''} ${currentTheme === 'princess' ? 'text-[#FF6B81]' : (currentTheme === 'excel' ? 'text-[#217346]' : 'text-slate-400')}`} />
+                                </button>
+                                
+                                {isFontDropdownOpen && (
+                                    <div 
+                                        className={`absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-50 shadow-xl border custom-scrollbar transition-all animate-in fade-in slide-in-from-top-2 duration-200 ${
+                                            currentTheme === 'princess' 
+                                                ? 'bg-white/95 backdrop-blur-md border-[#FFD1DC] rounded-[16px] text-slate-800' 
+                                                : (currentTheme === 'excel' 
+                                                    ? 'bg-[#F3F2F1] border-[#D1D1D1] text-slate-800' 
+                                                    : 'bg-[#252526] border-[#3E3E42] text-[#D4D4D4] rounded-lg')
+                                        }`}
+                                    >
+                                        {FONTS_LIST.map(f => {
+                                            const isSelected = fontFamily === f.id;
+                                            let hoverClass = '';
+                                            if (currentTheme === 'princess') {
+                                                hoverClass = isSelected ? 'bg-[#FFE4E1] text-[#FF6B81]' : 'hover:bg-[#FFF0F5] text-slate-700';
+                                            } else if (currentTheme === 'excel') {
+                                                hoverClass = isSelected ? 'bg-[#E1DFDD] text-[#217346]' : 'hover:bg-[#EDEBE9] text-slate-700';
+                                            } else {
+                                                hoverClass = isSelected ? 'bg-[#007ACC] text-white' : 'hover:bg-[#2D2D30] text-[#ABB2BF]';
+                                            }
 
-                                        return (
-                                            <button
-                                                key={f.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    setFontFamily(f.id);
-                                                    setIsFontDropdownOpen(false);
-                                                }}
-                                                className={`w-full text-left py-2 px-3 text-xs sm:text-sm font-medium transition-colors flex flex-col gap-0.5 border-b last:border-b-0 font-preview-item ${
-                                                    currentTheme === 'princess' ? 'border-[#FFF0F5]' : (currentTheme === 'excel' ? 'border-[#E1E1E1]' : 'border-[#2D2D30]')
-                                                } ${hoverClass}`}
-                                                style={{ fontFamily: f.id === 'default' ? "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif" : `'${f.id}', sans-serif` }}
-                                            >
-                                                <span className="font-semibold">{t(f.labelKey)}</span>
-                                                <span className="text-[10px] opacity-60">
-                                                    {f.id === 'default' ? t('settings.font_preview_default') : t('settings.font_preview_text')}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                                            return (
+                                                <button
+                                                    key={f.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFontFamily(f.id);
+                                                        setIsFontDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full text-left py-2 px-3 text-xs sm:text-sm font-medium transition-colors flex flex-col gap-0.5 border-b last:border-b-0 font-preview-item ${
+                                                        currentTheme === 'princess' ? 'border-[#FFF0F5]' : (currentTheme === 'excel' ? 'border-[#E1E1E1]' : 'border-[#2D2D30]')
+                                                    } ${hoverClass}`}
+                                                    style={{ fontFamily: f.id === 'default' ? "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif" : `'${f.id}', sans-serif` }}
+                                                >
+                                                    <span className="font-semibold">{t(f.labelKey)}</span>
+                                                    <span className="text-[10px] opacity-60">
+                                                        {f.id === 'default' ? t('settings.font_preview_default') : t('settings.font_preview_text')}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
                     {/* Auto Launch Setting */}
                     {ipcRenderer && (
                         <div className={`pt-3 border-t ${theme.divider} mt-4`}>
