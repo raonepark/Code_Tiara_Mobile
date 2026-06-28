@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings, ChevronDown, Download, Upload, GripVertical, Check, X, Trash2, Plus, RotateCcw, Edit2, BookOpen } from 'lucide-react';
+import { Settings, ChevronDown, Download, Upload, GripVertical, Check, X, Trash2, Plus, RotateCcw, BookOpen } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { THEME_CONFIG } from '../constants/themeConfig';
 import packageJson from '../../package.json';
@@ -34,9 +34,7 @@ const SettingsPanel = ({
 }) => {
     const { t, i18n } = useTranslation();
     const [isThemeSettingsExpanded, setIsThemeSettingsExpanded] = useState(false);
-    const [isEditingName, setIsEditingName] = useState(false);
     const [isFontDropdownOpen, setIsFontDropdownOpen] = useState(false);
-    const nameInputRef = useRef(null);
     const [isAutoLaunch, setIsAutoLaunch] = useState(false);
 
     useEffect(() => {
@@ -54,12 +52,7 @@ const SettingsPanel = ({
         }
     };
 
-    useEffect(() => {
-        if (isEditingName && nameInputRef.current) {
-            nameInputRef.current.focus();
-            nameInputRef.current.select();
-        }
-    }, [isEditingName]);
+
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -96,55 +89,7 @@ const SettingsPanel = ({
 
 
 
-                {/* 📝 Board Name Card */}
-                <div className={theme.settings.wrapper}>
-                    <div className={theme.settings.header}>
-                        {t('settings.boardName')}
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {isEditingName ? (
-                            <input
-                                ref={nameInputRef}
-                                type="text"
-                                value={projectTitle}
-                                onChange={(e) => setProjectTitle(e.target.value)}
-                                onBlur={() => setIsEditingName(false)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') setIsEditingName(false);
-                                    if (e.key === 'Escape') setIsEditingName(false);
-                                }}
-                                className={`flex-1 ${theme.settings.input} transition-all`}
-                                placeholder={defaultTitle || 'My Board'}
-                            />
-                        ) : (
-                            <div
-                                onClick={() => setIsEditingName(true)}
-                                className={`flex-1 flex items-center justify-between cursor-pointer group px-3 py-2 transition-all ${currentTheme === 'developer'
-                                    ? 'bg-[#1E1E1E] border border-[#3E3E42] text-[#ABB2BF] hover:border-[#61AFEF]'
-                                    : currentTheme === 'excel'
-                                        ? 'bg-white border border-[#D1D1D1] text-[#000] hover:border-[#217346]'
-                                        : 'bg-white border-[1.5px] border-[#FFC0CB] rounded-[30px] text-slate-600 hover:border-[#FF6B81]'
-                                    }`}
-                            >
-                                <span className={`text-base font-bold truncate ${
-                                    currentTheme === 'princess' && projectTitle === (defaultTitle || 'My Board')
-                                        ? 'text-[#FF6B81]'
-                                        : ''
-                                }`}>
-                                    {currentTheme === 'princess' && projectTitle === (defaultTitle || 'My Board')
-                                        ? <>{t('app.my_diary')} <span className="text-xs">🎀</span></>
-                                        : projectTitle
-                                    }
-                                </span>
-                                <Edit2 className={`w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity ${
-                                    currentTheme === 'developer' ? 'text-[#61AFEF]'
-                                        : currentTheme === 'excel' ? 'text-[#217346]'
-                                            : 'text-[#FF6B81]'
-                                }`} />
-                            </div>
-                        )}
-                    </div>
-                </div>
+
 
                 {/* 🎨 Theme Settings Card - Unified (Collapsible) */}
                 <div className={theme.settings.wrapper}>
