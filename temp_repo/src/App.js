@@ -4994,20 +4994,7 @@ const CodeTiara = () => {
                     {longPressedTask.text.startsWith('app.task_') ? t(longPressedTask.text) : longPressedTask.text}
                   </div>
 
-                  <div className="grid grid-cols-5 gap-2 pb-6">
-                    {/* Toggle Complete */}
-                    <button
-                      onClick={() => { toggleTask(longPressedTask.id); setLongPressedTask(null); }}
-                      className={`flex flex-col items-center justify-center p-2 rounded-2xl gap-2 transition-all active:scale-95 ${
-                        currentTheme === 'princess' ? 'bg-[#FFF0F5] text-[#FF6B81]' :
-                        currentTheme === 'excel' ? 'bg-[#F3F2F1] text-slate-700' :
-                        'bg-[#252526] text-[#D4D4D4]'
-                      }`}
-                    >
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span className="text-[10px] font-bold">{t('app.tooltip_complete') || '완료'}</span>
-                    </button>
-
+                  <div className="grid grid-cols-4 gap-2 pb-6">
                     {/* Copy / Duplicate */}
                     <button
                       onClick={() => { duplicateTask(longPressedTask); setLongPressedTask(null); }}
@@ -5018,7 +5005,7 @@ const CodeTiara = () => {
                       }`}
                     >
                       <Copy className="w-5 h-5" />
-                      <span className="text-[10px] font-bold">{t('app.tooltip_duplicate') || '복사'}</span>
+                      <span className="text-[10px] font-bold">{t('tooltip_duplicate') || '복사'}</span>
                     </button>
 
                     {/* Edit */}
@@ -5031,7 +5018,7 @@ const CodeTiara = () => {
                       }`}
                     >
                       <Edit2 className="w-5 h-5" />
-                      <span className="text-[10px] font-bold">{t('app.tooltip_edit') || '수정'}</span>
+                      <span className="text-[10px] font-bold">{t('tooltip_edit') || '수정'}</span>
                     </button>
 
                     {/* Move Category */}
@@ -5057,7 +5044,7 @@ const CodeTiara = () => {
                       }`}
                     >
                       <Trash2 className="w-5 h-5" />
-                      <span className="text-[10px] font-bold">{t('app.tooltip_delete') || '삭제'}</span>
+                      <span className="text-[10px] font-bold">{t('tooltip_delete') || '삭제'}</span>
                     </button>
                   </div>
                 </>
