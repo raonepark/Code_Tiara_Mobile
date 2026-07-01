@@ -133,12 +133,12 @@ const OnboardingPanel = ({ currentTheme, theme, user, onClose }) => {
   const isDeveloper = currentTheme === 'developer';
 
   const containerBg = isPrincess
-    ? 'bg-[#FFFCFD] border-2 border-[#FFC0CB] rounded-2xl shadow-[0_8px_30px_rgba(255,182,193,0.3)]'
+    ? 'bg-[#FFFCFD] rounded-2xl shadow-[0_8px_30px_rgba(255,182,193,0.3)]'
     : isExcel
-      ? 'bg-white border border-[#D1D1D1] rounded-none shadow-md'
+      ? 'bg-white rounded-none shadow-md'
       : isDeveloper
-        ? 'bg-[#1E1E1E] border border-[#3E3E42] text-[#ABB2BF] rounded-none shadow-lg'
-        : 'bg-white border border-slate-200 rounded-xl shadow-lg';
+        ? 'bg-[#1E1E1E] text-[#ABB2BF] rounded-none shadow-lg'
+        : 'bg-white rounded-xl shadow-lg';
 
   const headerBg = isPrincess
     ? 'bg-[#FFF0F5] border-b border-[#FFC0CB]/30 text-[#FF6B81]'
@@ -199,11 +199,11 @@ const OnboardingPanel = ({ currentTheme, theme, user, onClose }) => {
         </div>
         <button
           onClick={handleClose}
-          className={`p-1 rounded-full hover:bg-black/5 transition-colors cursor-pointer flex items-center justify-center`}
+          className={`p-1.5 rounded-full hover:bg-black/8 transition-colors cursor-pointer flex items-center justify-center`}
           style={{ WebkitAppRegion: 'no-drag' }}
           title={t('onboarding.close')}
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-5 h-5" />
         </button>
       </div>
 
