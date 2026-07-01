@@ -462,6 +462,7 @@ const CodeTiara = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(categories[0]?.id || '');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [wasMiniModeBeforeSettings, setWasMiniModeBeforeSettings] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   // UI 상태 관리
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
@@ -1099,11 +1100,15 @@ const CodeTiara = () => {
     const onboardingCompleted = localStorage.getItem(`lumora_onboarding_completed_${user.uid}`) === 'true';
     if (!onboardingCompleted) {
       const timer = setTimeout(() => {
-        sendIPC('open-popout', 'onboarding');
+        if (isMobile) {
+          setIsOnboardingOpen(true);
+        } else {
+          sendIPC('open-popout', 'onboarding');
+        }
       }, 1200);
       return () => clearTimeout(timer);
     }
-  }, [user, isInitialLoadComplete, popoutCategoryId]);
+  }, [user, isInitialLoadComplete, popoutCategoryId, isMobile]);
 
   // --- ⏱️ 타이머 항상 위에 고정 상태 변경 핸들러 ---
   useEffect(() => {
@@ -3396,7 +3401,14 @@ const CodeTiara = () => {
             handleResetRequest={handleResetRequest}
             isResetConfirming={isResetConfirming}
             getIcon={getIcon}
-            openOnboardingGuide={() => sendIPC('open-popout', 'onboarding')}
+            openOnboardingGuide={() => {
+              if (isMobile) {
+                setIsOnboardingOpen(true);
+                closeSettings();
+              } else {
+                sendIPC('open-popout', 'onboarding');
+              }
+            }}
             user={user}
             onSignOut={handleLogOut}
             onLoginClick={() => {
@@ -5388,6 +5400,20 @@ const CodeTiara = () => {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        )}
+        
+        {/* ✨ Mobile UX: Onboarding/User Guide Overlay */}
+        {isOnboardingOpen && (
+          <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-sm h-[75vh] min-h-[440px] max-h-[580px] flex flex-col relative overflow-hidden rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
+              <OnboardingPanel
+                currentTheme={currentTheme}
+                theme={theme}
+                user={user}
+                onClose={() => setIsOnboardingOpen(false)}
+              />
             </div>
           </div>
         )}

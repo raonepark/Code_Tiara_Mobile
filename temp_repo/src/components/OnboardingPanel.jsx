@@ -188,7 +188,7 @@ const OnboardingPanel = ({ currentTheme, theme, user, onClose }) => {
 
   return (
     <div 
-      className={`h-screen w-screen flex flex-col overflow-hidden select-none ${containerBg} ${fontClass}`}
+      className={`h-full w-full flex flex-col overflow-hidden select-none ${containerBg} ${fontClass}`}
       style={{ WebkitAppRegion: 'drag' }}
     >
       {/* 📖 frameless header dragging region & close */}
