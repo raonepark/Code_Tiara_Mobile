@@ -467,12 +467,10 @@ const CodeTiara = () => {
   // Mobile Bottom Sheet Gesture States
   const [editSheetDragY, setEditSheetDragY] = useState(0);
   const [isDraggingEditSheet, setIsDraggingEditSheet] = useState(false);
-  const [editSheetSnap, setEditSheetSnap] = useState('expanded'); // 'expanded', 'collapsed'
   const editSheetStartY = useRef(0);
 
   const [addSheetDragY, setAddSheetDragY] = useState(0);
   const [isDraggingAddSheet, setIsDraggingAddSheet] = useState(false);
-  const [addSheetSnap, setAddSheetSnap] = useState('expanded'); // 'expanded', 'collapsed'
   const addSheetStartY = useRef(0);
 
   // UI 상태 관리
@@ -1944,7 +1942,6 @@ const CodeTiara = () => {
     setEditingRecurrence('none');
     setEditingRecurrenceInterval(1);
     setEditingRecurrenceDays([]);
-    setEditSheetSnap('expanded');
     setEditSheetDragY(0);
   };
 
@@ -4759,7 +4756,7 @@ const CodeTiara = () => {
         {isAddSheetOpen && (
           <div className="fixed inset-0 z-50 flex items-end">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => { setIsAddSheetOpen(false); setAddSheetSnap('expanded'); setAddSheetDragY(0); }} />
+            <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => { setIsAddSheetOpen(false); setAddSheetDragY(0); }} />
             
             {/* Sheet Content */}
             <div 
@@ -4775,7 +4772,7 @@ const CodeTiara = () => {
             >
               <div 
                 onTouchStart={(e) => {
-                  const base = addSheetSnap === 'collapsed' ? 240 : 0;
+                  const base = addSheetDragY;
                   addSheetStartY.current = e.touches[0].clientY - base;
                   setIsDraggingAddSheet(true);
                 }}
@@ -4783,19 +4780,12 @@ const CodeTiara = () => {
                   if (!isDraggingAddSheet) return;
                   const currentY = e.touches[0].clientY;
                   const newOffset = currentY - addSheetStartY.current;
-                  setAddSheetDragY(Math.max(-20, newOffset));
+                  setAddSheetDragY(Math.max(0, newOffset));
                 }}
                 onTouchEnd={() => {
                   setIsDraggingAddSheet(false);
-                  if (addSheetDragY > 340) {
+                  if (addSheetDragY > 400) {
                     setIsAddSheetOpen(false);
-                    setAddSheetSnap('expanded');
-                    setAddSheetDragY(0);
-                  } else if (addSheetDragY > 120) {
-                    setAddSheetSnap('collapsed');
-                    setAddSheetDragY(240);
-                  } else {
-                    setAddSheetSnap('expanded');
                     setAddSheetDragY(0);
                   }
                 }}
@@ -5110,7 +5100,7 @@ const CodeTiara = () => {
             >
               <div 
                 onTouchStart={(e) => {
-                  const base = editSheetSnap === 'collapsed' ? 240 : 0;
+                  const base = editSheetDragY;
                   editSheetStartY.current = e.touches[0].clientY - base;
                   setIsDraggingEditSheet(true);
                 }}
@@ -5118,19 +5108,12 @@ const CodeTiara = () => {
                   if (!isDraggingEditSheet) return;
                   const currentY = e.touches[0].clientY;
                   const newOffset = currentY - editSheetStartY.current;
-                  setEditSheetDragY(Math.max(-20, newOffset));
+                  setEditSheetDragY(Math.max(0, newOffset));
                 }}
                 onTouchEnd={() => {
                   setIsDraggingEditSheet(false);
-                  if (editSheetDragY > 340) {
+                  if (editSheetDragY > 400) {
                     cancelEditing();
-                    setEditSheetSnap('expanded');
-                    setEditSheetDragY(0);
-                  } else if (editSheetDragY > 120) {
-                    setEditSheetSnap('collapsed');
-                    setEditSheetDragY(240);
-                  } else {
-                    setEditSheetSnap('expanded');
                     setEditSheetDragY(0);
                   }
                 }}
