@@ -464,6 +464,15 @@ const CodeTiara = () => {
   const [wasMiniModeBeforeSettings, setWasMiniModeBeforeSettings] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
+  // Mobile Bottom Sheet Gesture States
+  const [editSheetDragY, setEditSheetDragY] = useState(0);
+  const [isDraggingEditSheet, setIsDraggingEditSheet] = useState(false);
+  const editSheetStartY = useRef(0);
+
+  const [addSheetDragY, setAddSheetDragY] = useState(0);
+  const [isDraggingAddSheet, setIsDraggingAddSheet] = useState(false);
+  const addSheetStartY = useRef(0);
+
   // UI 상태 관리
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [isResetConfirming, setIsResetConfirming] = useState(false);
@@ -4749,12 +4758,38 @@ const CodeTiara = () => {
             <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => setIsAddSheetOpen(false)} />
             
             {/* Sheet Content */}
-            <div className={`relative w-full rounded-t-2xl p-4 pb-12 sm:pb-4 shadow-2xl animate-in slide-in-from-bottom-full duration-300 ${
-              currentTheme === 'princess' ? 'bg-white' :
-              currentTheme === 'excel' ? 'bg-[#F3F2F1]' :
-              'bg-[#252526] border-t border-[#3E3E42]'
-            }`}>
-              <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4" />
+            <div 
+              style={{
+                transform: `translateY(${addSheetDragY}px)`,
+                transition: isDraggingAddSheet ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
+              className={`relative w-full rounded-t-2xl p-4 pb-12 sm:pb-4 shadow-2xl animate-in slide-in-from-bottom-full duration-300 ${
+                currentTheme === 'princess' ? 'bg-white' :
+                currentTheme === 'excel' ? 'bg-[#F3F2F1]' :
+                'bg-[#252526] border-t border-[#3E3E42]'
+              }`}
+            >
+              <div 
+                onTouchStart={(e) => {
+                  addSheetStartY.current = e.touches[0].clientY;
+                  setIsDraggingAddSheet(true);
+                }}
+                onTouchMove={(e) => {
+                  if (!isDraggingAddSheet) return;
+                  const deltaY = e.touches[0].clientY - addSheetStartY.current;
+                  if (deltaY > 0) {
+                    setAddSheetDragY(deltaY);
+                  }
+                }}
+                onTouchEnd={() => {
+                  setIsDraggingAddSheet(false);
+                  if (addSheetDragY > 100) {
+                    setIsAddSheetOpen(false);
+                  }
+                  setAddSheetDragY(0);
+                }}
+                className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-grab active:cursor-grabbing p-2 -m-2" 
+              />
               
               <div className="flex flex-col gap-3 pb-2 max-h-[75vh] overflow-y-auto custom-scrollbar px-1">
                 {/* 1. Input & Add Button Row */}
@@ -5051,12 +5086,38 @@ const CodeTiara = () => {
             <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={cancelEditing} />
             
             {/* Sheet Content */}
-            <div className={`relative w-full rounded-t-2xl p-4 pb-12 sm:pb-4 shadow-2xl animate-in slide-in-from-bottom-full duration-300 max-h-[85vh] overflow-y-auto ${
-              currentTheme === 'princess' ? 'bg-white' :
-              currentTheme === 'excel' ? 'bg-[#F3F2F1]' :
-              'bg-[#252526] border-t border-[#3E3E42]'
-            }`}>
-              <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4" />
+            <div 
+              style={{
+                transform: `translateY(${editSheetDragY}px)`,
+                transition: isDraggingEditSheet ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
+              className={`relative w-full rounded-t-2xl p-4 pb-12 sm:pb-4 shadow-2xl animate-in slide-in-from-bottom-full duration-300 max-h-[85vh] overflow-y-auto ${
+                currentTheme === 'princess' ? 'bg-white' :
+                currentTheme === 'excel' ? 'bg-[#F3F2F1]' :
+                'bg-[#252526] border-t border-[#3E3E42]'
+              }`}
+            >
+              <div 
+                onTouchStart={(e) => {
+                  editSheetStartY.current = e.touches[0].clientY;
+                  setIsDraggingEditSheet(true);
+                }}
+                onTouchMove={(e) => {
+                  if (!isDraggingEditSheet) return;
+                  const deltaY = e.touches[0].clientY - editSheetStartY.current;
+                  if (deltaY > 0) {
+                    setEditSheetDragY(deltaY);
+                  }
+                }}
+                onTouchEnd={() => {
+                  setIsDraggingEditSheet(false);
+                  if (editSheetDragY > 100) {
+                    cancelEditing();
+                  }
+                  setEditSheetDragY(0);
+                }}
+                className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-grab active:cursor-grabbing p-2 -m-2" 
+              />
               
               <div className={`text-center font-bold mb-4 text-base ${
                 currentTheme === 'princess' ? 'text-[#FF6B81]' :
