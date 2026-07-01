@@ -467,10 +467,12 @@ const CodeTiara = () => {
   // Mobile Bottom Sheet Gesture States
   const [editSheetDragY, setEditSheetDragY] = useState(0);
   const [isDraggingEditSheet, setIsDraggingEditSheet] = useState(false);
+  const [editSheetSnap, setEditSheetSnap] = useState('expanded'); // 'expanded', 'collapsed'
   const editSheetStartY = useRef(0);
 
   const [addSheetDragY, setAddSheetDragY] = useState(0);
   const [isDraggingAddSheet, setIsDraggingAddSheet] = useState(false);
+  const [addSheetSnap, setAddSheetSnap] = useState('expanded'); // 'expanded', 'collapsed'
   const addSheetStartY = useRef(0);
 
   // UI 상태 관리
@@ -1942,6 +1944,8 @@ const CodeTiara = () => {
     setEditingRecurrence('none');
     setEditingRecurrenceInterval(1);
     setEditingRecurrenceDays([]);
+    setEditSheetSnap('expanded');
+    setEditSheetDragY(0);
   };
 
   const saveEditing = (id) => {
@@ -4755,7 +4759,7 @@ const CodeTiara = () => {
         {isAddSheetOpen && (
           <div className="fixed inset-0 z-50 flex items-end">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => setIsAddSheetOpen(false)} />
+            <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => { setIsAddSheetOpen(false); setAddSheetSnap('expanded'); setAddSheetDragY(0); }} />
             
             {/* Sheet Content */}
             <div 
@@ -4771,22 +4775,29 @@ const CodeTiara = () => {
             >
               <div 
                 onTouchStart={(e) => {
-                  addSheetStartY.current = e.touches[0].clientY;
+                  const base = addSheetSnap === 'collapsed' ? 240 : 0;
+                  addSheetStartY.current = e.touches[0].clientY - base;
                   setIsDraggingAddSheet(true);
                 }}
                 onTouchMove={(e) => {
                   if (!isDraggingAddSheet) return;
-                  const deltaY = e.touches[0].clientY - addSheetStartY.current;
-                  if (deltaY > 0) {
-                    setAddSheetDragY(deltaY);
-                  }
+                  const currentY = e.touches[0].clientY;
+                  const newOffset = currentY - addSheetStartY.current;
+                  setAddSheetDragY(Math.max(-20, newOffset));
                 }}
                 onTouchEnd={() => {
                   setIsDraggingAddSheet(false);
-                  if (addSheetDragY > 100) {
+                  if (addSheetDragY > 340) {
                     setIsAddSheetOpen(false);
+                    setAddSheetSnap('expanded');
+                    setAddSheetDragY(0);
+                  } else if (addSheetDragY > 120) {
+                    setAddSheetSnap('collapsed');
+                    setAddSheetDragY(240);
+                  } else {
+                    setAddSheetSnap('expanded');
+                    setAddSheetDragY(0);
                   }
-                  setAddSheetDragY(0);
                 }}
                 className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-grab active:cursor-grabbing p-2 -m-2" 
               />
@@ -5099,22 +5110,29 @@ const CodeTiara = () => {
             >
               <div 
                 onTouchStart={(e) => {
-                  editSheetStartY.current = e.touches[0].clientY;
+                  const base = editSheetSnap === 'collapsed' ? 240 : 0;
+                  editSheetStartY.current = e.touches[0].clientY - base;
                   setIsDraggingEditSheet(true);
                 }}
                 onTouchMove={(e) => {
                   if (!isDraggingEditSheet) return;
-                  const deltaY = e.touches[0].clientY - editSheetStartY.current;
-                  if (deltaY > 0) {
-                    setEditSheetDragY(deltaY);
-                  }
+                  const currentY = e.touches[0].clientY;
+                  const newOffset = currentY - editSheetStartY.current;
+                  setEditSheetDragY(Math.max(-20, newOffset));
                 }}
                 onTouchEnd={() => {
                   setIsDraggingEditSheet(false);
-                  if (editSheetDragY > 100) {
+                  if (editSheetDragY > 340) {
                     cancelEditing();
+                    setEditSheetSnap('expanded');
+                    setEditSheetDragY(0);
+                  } else if (editSheetDragY > 120) {
+                    setEditSheetSnap('collapsed');
+                    setEditSheetDragY(240);
+                  } else {
+                    setEditSheetSnap('expanded');
+                    setEditSheetDragY(0);
                   }
-                  setEditSheetDragY(0);
                 }}
                 className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-grab active:cursor-grabbing p-2 -m-2" 
               />
