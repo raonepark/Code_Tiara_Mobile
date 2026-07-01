@@ -5078,7 +5078,6 @@ const CodeTiara = () => {
                     value={editingText}
                     onChange={(e) => setEditingText(e.target.value)}
                     placeholder={t('app.edit_placeholder') || "할 일을 수정하세요..."}
-                    autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
