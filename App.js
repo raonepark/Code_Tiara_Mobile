@@ -37,7 +37,7 @@ export default function App() {
         };
       case 'excel':
         return {
-          backgroundColor: '#107C41',
+          backgroundColor: '#217346',
           statusBarStyle: 'light'
         };
       case 'developer':
