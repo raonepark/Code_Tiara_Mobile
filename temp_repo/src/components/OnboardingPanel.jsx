@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, X, Sparkles, Layers, Clock, BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Sparkles, BookOpen } from 'lucide-react';
 
 const OnboardingPanel = ({ currentTheme, theme, user, onClose }) => {
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(0);
+
+  const isPrincess = currentTheme === 'princess';
+  const isExcel = currentTheme === 'excel';
+  const isDeveloper = currentTheme === 'developer';
 
   const slides = [
     {
@@ -27,35 +31,41 @@ const OnboardingPanel = ({ currentTheme, theme, user, onClose }) => {
       subtitle: t('onboarding.subtitle2'),
       content: (
         <div className="flex flex-col items-center justify-center text-center space-y-3">
-          <div className="relative w-36 h-24 bg-gradient-to-br from-amber-100 to-yellow-200 border border-yellow-300 rounded shadow-md p-2 flex flex-col justify-between text-left transform rotate-1 hover:rotate-0 transition-transform will-change-transform">
-            <div className="w-2 h-2 bg-red-400 rounded-full mx-auto -mt-1.5 shadow-sm"></div>
-            <div className="space-y-1 mt-1">
-              <div className="h-1.5 w-16 bg-amber-400 rounded-full"></div>
-              <div className="h-1.5 w-24 bg-amber-300 rounded-full"></div>
-              <div className="h-1.5 w-20 bg-amber-300 rounded-full"></div>
+          <div className={`relative w-40 h-24 border rounded-2xl shadow-md p-3 flex flex-col justify-between text-left transition-transform duration-300 hover:scale-105 will-change-transform ${
+            isPrincess ? 'bg-[#FFF0F5]/80 border-pink-200' :
+            isExcel ? 'bg-white border-[#D1D1D1]' :
+            'bg-[#2D2D2D] border-[#3E3E42]'
+          }`}>
+            <div className="flex items-center justify-between">
+              <span className={`text-[10px] font-bold ${
+                isPrincess ? 'text-[#FF6B81]' :
+                isExcel ? 'text-[#217346]' :
+                'text-[#61AFEF]'
+              }`}>
+                👑 Code Tiara Widget
+              </span>
+              <span className="text-[8px] opacity-40">2x2</span>
             </div>
-            <div className="flex justify-between items-center text-[8px] text-amber-600 font-mono">
-              <span>📍 ALWAYS ON TOP</span>
-              <Layers className="w-2.5 h-2.5" />
+            
+            <div className="space-y-1.5 my-auto">
+              <div className="flex items-center gap-1.5">
+                <div className={`w-3.5 h-3.5 rounded flex items-center justify-center border ${
+                  isPrincess ? 'bg-[#FF6B81] border-[#FF6B81] text-white' :
+                  isExcel ? 'bg-[#107C41] border-[#107C41] text-white' :
+                  'bg-[#98C379] border-[#98C379] text-[#282C34]'
+                }`}>
+                  <span className="text-[9px] font-bold">✓</span>
+                </div>
+                <div className={`h-1.5 w-20 rounded-full ${isPrincess ? 'bg-pink-200/60' : isExcel ? 'bg-slate-200' : 'bg-[#3E4451]'}`} />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className={`w-3.5 h-3.5 rounded border ${isPrincess ? 'border-pink-300 bg-white' : isExcel ? 'border-slate-300 bg-white' : 'border-[#4B5263] bg-transparent'}`} />
+                <div className={`h-1.5 w-24 rounded-full ${isPrincess ? 'bg-pink-200/60' : isExcel ? 'bg-slate-200' : 'bg-[#3E4451]'}`} />
+              </div>
             </div>
           </div>
           <p className="text-sm leading-relaxed px-2 opacity-90">
             {t('onboarding.desc2_1')}<strong>{t('onboarding.desc2_bold')}</strong>{t('onboarding.desc2_2')}
-          </p>
-        </div>
-      )
-    },
-    {
-      title: t('onboarding.title3'),
-      subtitle: t('onboarding.subtitle3'),
-      content: (
-        <div className="flex flex-col items-center justify-center text-center space-y-4">
-          <div className="relative flex items-center justify-center w-20 h-20 rounded-full border-4 border-dashed border-[#FF6B81] animate-spin-slow will-change-transform">
-            <Clock className="w-10 h-10 text-[#FF6B81] animate-pulse" />
-            <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-[#FF6B81] rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
-          </div>
-          <p className="text-sm leading-relaxed px-3 opacity-90">
-            {t('onboarding.desc3_1')}<strong>{t('onboarding.desc3_bold')}</strong>{t('onboarding.desc3_2')}
           </p>
         </div>
       )
@@ -128,10 +138,6 @@ const OnboardingPanel = ({ currentTheme, theme, user, onClose }) => {
   };
 
   // Theme-specific styles
-  const isPrincess = currentTheme === 'princess';
-  const isExcel = currentTheme === 'excel';
-  const isDeveloper = currentTheme === 'developer';
-
   const containerBg = isPrincess
     ? 'bg-[#FFFCFD] rounded-2xl shadow-[0_8px_30px_rgba(255,182,193,0.3)]'
     : isExcel
