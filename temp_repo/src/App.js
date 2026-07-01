@@ -4714,19 +4714,21 @@ const CodeTiara = () => {
         })()}
 
         {/* ✨ Mobile UX: Global FAB (Floating Action Button) */}
-        <button
-          onClick={() => {
-            setIsAddSheetOpen(true);
-            setShowAdvancedAdd(false);
-          }}
-          className={`fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] sm:bottom-6 right-6 w-14 h-14 rounded-full shadow-xl flex items-center justify-center z-40 transition-transform active:scale-95 ${
-            currentTheme === 'princess' ? 'bg-[#FF6B81] text-white' :
-            currentTheme === 'excel' ? 'bg-[#107C41] text-white' :
-            'bg-[#007ACC] text-white'
-          }`}
-        >
-          <span className="text-3xl leading-none mb-1">+</span>
-        </button>
+        {!isSettingsOpen && (
+          <button
+            onClick={() => {
+              setIsAddSheetOpen(true);
+              setShowAdvancedAdd(false);
+            }}
+            className={`fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] sm:bottom-6 right-6 w-14 h-14 rounded-full shadow-xl flex items-center justify-center z-40 transition-transform active:scale-95 ${
+              currentTheme === 'princess' ? 'bg-[#FF6B81] text-white' :
+              currentTheme === 'excel' ? 'bg-[#107C41] text-white' :
+              'bg-[#007ACC] text-white'
+            }`}
+          >
+            <span className="text-3xl leading-none mb-1">+</span>
+          </button>
+        )}
 
         {/* ✨ Mobile UX: Add Task Bottom Sheet */}
         {isAddSheetOpen && (
