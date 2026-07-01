@@ -165,7 +165,7 @@ const TaskItem = memo(({
         const diffX = touchStart - currentX;
         
         if (diffX > 0) {
-            setSwipeOffset(Math.min(diffX, 120));
+            setSwipeOffset(Math.min(diffX, 240));
         } else {
             setSwipeOffset(0);
         }
@@ -187,7 +187,11 @@ const TaskItem = memo(({
         }
 
         if (!isMobile || editingTaskId === task.id) return;
-        if (swipeOffset > 50) {
+        
+        if (swipeOffset > 150) {
+            // Full swipe threshold reached -> Delete immediately!
+            finalDeleteTask(task.id);
+        } else if (swipeOffset > 50) {
             setSwipeOffset(70);
             setIsSwipeOpen(true);
         } else {
@@ -323,13 +327,20 @@ const TaskItem = memo(({
                         finalDeleteTask(task.id);
                     }}
                     style={{
+                        width: `${Math.max(70, swipeOffset)}px`,
                         opacity: swipeOffset > 0 ? 1 : 0,
                         pointerEvents: swipeOffset > 0 ? 'auto' : 'none',
-                        transition: 'opacity 0.2s ease-in-out'
+                        transition: touchStart !== null ? 'none' : 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease-in-out'
                     }}
-                    className="absolute right-0 top-0 bottom-0 w-[70px] bg-[#FF4D4D] hover:bg-[#FF3333] flex items-center justify-center text-white z-0 cursor-pointer"
+                    className={`absolute right-0 top-0 bottom-0 flex items-center justify-end pr-6 text-white z-0 cursor-pointer transition-colors duration-200 ${
+                        currentTheme === 'princess' 
+                            ? 'bg-[#FF6B81] hover:bg-[#FF5271] rounded-r-[16px]' 
+                            : currentTheme === 'excel' 
+                            ? 'bg-[#A80000] hover:bg-[#B30000] rounded-none' 
+                            : 'bg-[#E06C75] hover:bg-[#D1626A] rounded-none'
+                    }`}
                 >
-                    <Trash2 className="w-5 h-5 animate-in zoom-in-50 duration-200" />
+                    <Trash2 className="w-5 h-5 animate-in zoom-in-50 duration-200 shrink-0" />
                 </div>
             )}
 
