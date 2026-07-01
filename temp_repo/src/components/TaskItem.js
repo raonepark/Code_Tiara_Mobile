@@ -142,7 +142,15 @@ const TaskItem = memo(({
     const [touchStart, setTouchStart] = useState(null);
     const [swipeOffset, setSwipeOffset] = useState(0);
     const [isSwipeOpen, setIsSwipeOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const longPressTimerRef = useRef(null);
+
+    const triggerAnimatedDelete = () => {
+        setIsDeleting(true);
+        setTimeout(() => {
+            finalDeleteTask(task.id);
+        }, 300);
+    };
 
     const handleTouchStart = (e) => {
         if (!isMobile || editingTaskId === task.id) return;
@@ -189,8 +197,8 @@ const TaskItem = memo(({
         if (!isMobile || editingTaskId === task.id) return;
         
         if (swipeOffset > 150) {
-            // Full swipe threshold reached -> Delete immediately!
-            finalDeleteTask(task.id);
+            // Full swipe threshold reached -> Delete with animation!
+            triggerAnimatedDelete();
         } else if (swipeOffset > 50) {
             setSwipeOffset(70);
             setIsSwipeOpen(true);
@@ -297,7 +305,19 @@ const TaskItem = memo(({
                     '--c-dark': CATEGORY_ICON_HUES[category.colorTheme] || '#FF6B81',
                     '--c-light-rgb': hexToRgba(CATEGORY_HUES[category.colorTheme] || '#FFC0CB', 0.6),
                     '--c-bg': hexToRgba(CATEGORY_HUES[category.colorTheme] || '#FFC0CB', 0.15)
-                } : {})
+                } : {}),
+                ...(isDeleting ? {
+                    maxHeight: '0px',
+                    opacity: 0,
+                    marginBottom: '0px',
+                    paddingTop: '0px',
+                    paddingBottom: '0px',
+                    transition: 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease-out, margin-bottom 0.3s ease-out, padding 0.3s ease-out',
+                    overflow: 'hidden'
+                } : {
+                    maxHeight: '300px',
+                    transition: 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease-out'
+                })
             }}
             onClick={(e) => {
                 if (isSwipeOpen) {
@@ -324,7 +344,7 @@ const TaskItem = memo(({
                 <div
                     onClick={(e) => {
                         e.stopPropagation();
-                        finalDeleteTask(task.id);
+                        triggerAnimatedDelete();
                     }}
                     style={{
                         width: `${Math.max(70, swipeOffset)}px`,
@@ -334,9 +354,9 @@ const TaskItem = memo(({
                     }}
                     className={`absolute right-0 top-0 bottom-0 flex items-center justify-end pr-6 text-white z-0 cursor-pointer transition-colors duration-200 ${
                         currentTheme === 'princess' 
-                            ? 'bg-[#FF6B81] hover:bg-[#FF5271] rounded-r-[16px]' 
+                            ? 'bg-[#FF6B81] hover:bg-[#FF5271] rounded-r-[16px] border-t border-b border-r border-[var(--c-light)]' 
                             : currentTheme === 'excel' 
-                            ? 'bg-[#A80000] hover:bg-[#B30000] rounded-none' 
+                            ? 'bg-[#D13438] hover:bg-[#B30000] rounded-none' 
                             : 'bg-[#E06C75] hover:bg-[#D1626A] rounded-none'
                     }`}
                 >
