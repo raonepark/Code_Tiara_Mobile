@@ -9,7 +9,7 @@ export default function App() {
   const PC_WEB_URL = `http://${LOCAL_IP}:3000`;
 
   // Dynamically track theme changes from WebView to style native status bar
-  const [currentTheme, setCurrentTheme] = useState('princess');
+  const [currentTheme, setCurrentTheme] = useState('auth');
 
   const onMessage = (event) => {
     try {
@@ -25,6 +25,11 @@ export default function App() {
   // Status Bar and safe area style config based on active theme
   const getStatusBarConfig = () => {
     switch (currentTheme) {
+      case 'auth':
+        return {
+          backgroundColor: '#F9FAFB', // Matches bg-gray-50 background of AuthScreen
+          statusBarStyle: 'dark'
+        };
       case 'princess':
         return {
           backgroundColor: '#FFF0F5',
