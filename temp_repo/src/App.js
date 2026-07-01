@@ -4738,7 +4738,7 @@ const CodeTiara = () => {
               'bg-[#007ACC] text-white'
             }`}
           >
-            <span className="text-3xl leading-none mb-1">+</span>
+            <Plus className="w-7 h-7 stroke-[2.5px]" />
           </button>
         )}
 
