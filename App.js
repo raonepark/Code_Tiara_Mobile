@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 
 export default function App() {
   // Use the local IP where the PC React server will be running (port 3000)
-  const LOCAL_IP = '172.30.1.66';
+  const LOCAL_IP = '172.30.1.54';
   const PC_WEB_URL = `http://${LOCAL_IP}:3000`;
 
   // Dynamically track theme changes from WebView to style native status bar
